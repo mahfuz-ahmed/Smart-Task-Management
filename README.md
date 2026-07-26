@@ -20,6 +20,7 @@ On the first application startup, the database is automatically migrated and see
 > - ❌ Admin Cannot be created manually via registration
 > - 📝 New users register as **Project Manager** or **Team Member**
 
+---
 
 ## 📋 Table of Contents
 
