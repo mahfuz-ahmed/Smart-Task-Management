@@ -13,11 +13,11 @@ public sealed class GitHubModelsAiService : IAiService
     private readonly ILogger<GitHubModelsAiService> _logger;
 
     private const string Endpoint = "https://models.github.ai/inference/chat/completions";
-    private const string Model    = "openai/gpt-4o-mini";
+    private const string Model = "openai/gpt-4o-mini";
 
     public GitHubModelsAiService(HttpClient http, IConfiguration config, ILogger<GitHubModelsAiService> logger)
     {
-        _http   = http;
+        _http = http;
         _config = config;
         _logger = logger;
     }
@@ -49,24 +49,35 @@ public sealed class GitHubModelsAiService : IAiService
 
         var body = new
         {
-            model    = Model,
+            model = Model,
             messages = new[]
             {
                 new { role = "system", content = system },
                 new { role = "user",   content = user }
             },
             temperature = 0.7,
-            max_tokens  = 500
+            max_tokens = 500
         };
 
         using var request = new HttpRequestMessage(HttpMethod.Post, Endpoint);
         request.Headers.Add("Authorization", $"Bearer {token}");
+        request.Headers.Add("Accept", "application/vnd.github+json");
+        request.Headers.Add("X-GitHub-Api-Version", "2022-11-28");
         request.Content = JsonContent.Create(body);
 
         try
         {
             var response = await _http.SendAsync(request, ct);
-            response.EnsureSuccessStatusCode();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync(ct);
+                _logger.LogError(
+                    "GitHub Models API returned {StatusCode}. Response: {ErrorContent}",
+                    response.StatusCode,
+                    errorContent);
+                return BuildFallbackImprovement(description, taskTitle);
+            }
 
             var result = await response.Content.ReadFromJsonAsync<ChatResponse>(cancellationToken: ct);
             var improved = result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim();
