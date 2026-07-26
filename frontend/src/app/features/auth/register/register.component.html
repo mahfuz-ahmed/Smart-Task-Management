@@ -1,0 +1,189 @@
+<div class="auth-page">
+      <div class="auth-orb auth-orb-1"></div>
+      <div class="auth-orb auth-orb-2"></div>
+
+      <div class="auth-container" style="max-width: 480px;">
+        <div class="auth-brand">
+          <div class="brand-logo">⚡</div>
+          <h1 class="brand-title">SmartTask</h1>
+          <p class="brand-subtitle">Create your account to get started</p>
+        </div>
+
+        <div class="auth-card">
+          <div class="auth-card-header">
+            <h2>Create Account</h2>
+            <p>Join your team's workspace today</p>
+          </div>
+
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate id="register-form">
+            <!-- Name row -->
+            <div class="name-row">
+              <div class="form-group">
+                <label class="form-label" for="reg-firstname">First Name</label>
+                <input
+                  id="reg-firstname"
+                  type="text"
+                  class="form-control"
+                  [class.is-invalid]="isInvalid('firstName')"
+                  formControlName="firstName"
+                  placeholder="John"
+                  autocomplete="given-name"
+                />
+                @if (isInvalid('firstName')) {
+                  <span class="form-error">Required</span>
+                }
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="reg-lastname">Last Name</label>
+                <input
+                  id="reg-lastname"
+                  type="text"
+                  class="form-control"
+                  [class.is-invalid]="isInvalid('lastName')"
+                  formControlName="lastName"
+                  placeholder="Doe"
+                  autocomplete="family-name"
+                />
+                @if (isInvalid('lastName')) {
+                  <span class="form-error">Required</span>
+                }
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group" style="margin-top: 16px;">
+              <label class="form-label" for="reg-email">Email Address</label>
+              <div class="input-with-icon">
+                <span class="input-icon">✉️</span>
+                <input
+                  id="reg-email"
+                  type="email"
+                  class="form-control"
+                  [class.is-invalid]="isInvalid('email')"
+                  formControlName="email"
+                  placeholder="you@company.com"
+                  autocomplete="email"
+                />
+              </div>
+              @if (isInvalid('email')) {
+                <span class="form-error">Please enter a valid email</span>
+              }
+            </div>
+
+            <!-- Role Selection -->
+            <div class="form-group" style="margin-top: 16px;">
+              <label class="form-label" for="reg-role">Select Your Role</label>
+              <select 
+                id="reg-role" 
+                class="form-control role-select" 
+                formControlName="role"
+                [class.is-invalid]="isInvalid('role')"
+              >
+                @for (roleOpt of roleOptions; track roleOpt.value) {
+                  <option [value]="roleOpt.value">{{ roleOpt.label }}</option>
+                }
+              </select>
+              @if (form.get('role')?.value) {
+                <span class="form-hint">
+                  @for (roleOpt of roleOptions; track roleOpt.value) {
+                    @if (roleOpt.value === form.get('role')?.value) {
+                      <span class="role-description">
+                        @if (roleOpt.value === 2) {
+                          <span class="role-icon">👔</span>
+                        } @else {
+                          <span class="role-icon">👤</span>
+                        }
+                        {{ roleOpt.description }}
+                      </span>
+                    }
+                  }
+                </span>
+              }
+              @if (isInvalid('role')) {
+                <span class="form-error">Please select a role</span>
+              }
+            </div>
+
+            <!-- Password -->
+            <div class="form-group" style="margin-top: 16px;">
+              <label class="form-label" for="reg-password">Password</label>
+              <div class="input-with-icon">
+                <span class="input-icon">🔒</span>
+                <input
+                  id="reg-password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="form-control"
+                  [class.is-invalid]="isInvalid('password')"
+                  formControlName="password"
+                  placeholder="At least 8 characters"
+                  autocomplete="new-password"
+                />
+                <button type="button" class="input-toggle" (click)="togglePassword()">
+                  {{ showPassword() ? '🙈' : '👁️' }}
+                </button>
+              </div>
+              @if (isInvalid('password')) {
+                <span class="form-error">Password must be at least 8 characters</span>
+              }
+              <!-- Password strength -->
+              @if (form.get('password')?.value) {
+                <div class="password-strength">
+                  <div class="strength-bars">
+                    <div class="strength-bar" [class.active]="passwordStrength() >= 1" [class.strength-1]="passwordStrength() === 1" [class.strength-2]="passwordStrength() === 2" [class.strength-3]="passwordStrength() === 3"></div>
+                    <div class="strength-bar" [class.active]="passwordStrength() >= 2" [class.strength-2]="passwordStrength() === 2" [class.strength-3]="passwordStrength() === 3"></div>
+                    <div class="strength-bar" [class.active]="passwordStrength() >= 3" [class.strength-3]="passwordStrength() === 3"></div>
+                  </div>
+                  <span class="strength-label">{{ strengthLabel() }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group" style="margin-top: 16px;">
+              <label class="form-label" for="reg-confirm-password">Confirm Password</label>
+              <div class="input-with-icon">
+                <span class="input-icon">🔒</span>
+                <input
+                  id="reg-confirm-password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  class="form-control"
+                  [class.is-invalid]="isInvalid('confirmPassword') || (form.errors?.['passwordMismatch'] && form.get('confirmPassword')?.touched)"
+                  formControlName="confirmPassword"
+                  placeholder="Re-enter your password"
+                  autocomplete="new-password"
+                />
+              </div>
+              @if (form.errors?.['passwordMismatch'] && form.get('confirmPassword')?.touched) {
+                <span class="form-error">Passwords do not match</span>
+              }
+            </div>
+
+            @if (errorMessage()) {
+              <div class="auth-error-banner" role="alert">
+                <span>⚠️</span> {{ errorMessage() }}
+              </div>
+            }
+
+            <button
+              type="submit"
+              class="btn btn-primary btn-lg w-full"
+              [class.btn-loading]="loading()"
+              [disabled]="loading()"
+              style="margin-top: 24px;"
+              id="register-submit-btn"
+            >
+              @if (loading()) {
+                <span class="spinner spinner-sm"></span> Creating account...
+              } @else {
+                Create Account
+              }
+            </button>
+          </form>
+
+          <div class="auth-divider">
+            <span>Already have an account?</span>
+            <a routerLink="/auth/login" id="login-link">Sign in</a>
+          </div>
+        </div>
+      </div>
+    </div>

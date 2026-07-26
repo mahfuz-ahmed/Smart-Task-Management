@@ -1,0 +1,118 @@
+<div class="my-tasks-page page-enter">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">My Tasks</h1>
+      <p class="page-subtitle">Tasks assigned to you across all projects</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <div class="search-input-wrap" style="flex: 1; max-width: 300px;">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="form-control" placeholder="Search tasks..." (input)="onSearch($event)"
+        id="task-search-input" />
+    </div>
+    <select class="form-control" style="width: 160px;" (change)="onStatusFilter($event)" id="task-status-filter">
+      <option value="">All Status</option>
+      @for (s of taskStatuses; track s.value) {
+      <option [value]="s.value">{{ s.label }}</option>
+      }
+    </select>
+    <select class="form-control" style="width: 160px;" (change)="onPriorityFilter($event)" id="task-priority-filter">
+      <option value="">All Priorities</option>
+      @for (p of priorities; track p.value) {
+      <option [value]="p.value">{{ p.label }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+  <div class="page-loading">
+    <div class="spinner spinner-lg"></div>
+    <p>Loading tasks...</p>
+  </div>
+  }
+
+  @if (!loading()) {
+  <!-- Quick stats -->
+  <div class="task-stats-row">
+    @for (stat of taskStats(); track stat.status) {
+    <div class="task-stat-pill" [class.active]="statusFilter() === stat.status" (click)="setStatusFilter(stat.status)">
+      <span class="stat-dot" [style.background]="stat.color"></span>
+      <span>{{ stat.label }}</span>
+      <span class="stat-pill-count">{{ stat.count }}</span>
+    </div>
+    }
+  </div>
+
+  <!-- Empty state -->
+  @if (filteredTasks().length === 0) {
+  <div class="empty-state">
+    <div class="empty-state-icon">✅</div>
+    <div class="empty-state-title">No tasks found</div>
+    <div class="empty-state-desc">
+      {{
+      searchTerm() || statusFilter() || priorityFilter()
+      ? 'Try adjusting your filters'
+      : "You don't have any tasks assigned yet"
+      }}
+    </div>
+  </div>
+  }
+
+  <!-- Tasks grid -->
+  <div class="tasks-grid">
+    @for (task of filteredTasks(); track task.id) {
+    <div class="task-item-card" (click)="navigateToTask(task)" [id]="'my-task-' + task.id">
+      <div class="task-item-header">
+        <span class="badge" [class]="'badge-' + getPriorityBadgeClass(task.priority)">{{
+          getPriorityLabel(task.priority)
+          }}</span>
+        <span class="badge" [class]="'badge-' + getTaskStatusBadgeClass(task.status)">{{
+          getStatusLabel(task.status)
+          }}</span>
+        @if (
+        task.dueDate &&
+        isOverdue(task.dueDate) &&
+        task.status !== TaskStatus.Completed &&
+        task.status !== TaskStatus.Cancelled
+        ) {
+        <span class="badge badge-error">Overdue</span>
+        }
+      </div>
+
+      <h3 class="task-item-title">{{ task.title }}</h3>
+
+      @if (task.description) {
+      <p class="task-item-desc">
+        {{ task.description | slice: 0 : 100
+        }}{{ task.description.length > 100 ? '...' : '' }}
+      </p>
+      }
+
+      <div class="task-item-footer">
+        <div class="task-project">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+          </svg>
+          <a [routerLink]="['/projects', task.projectId]" (click)="$event.stopPropagation()" class="project-link">
+            {{ task.projectName }}
+          </a>
+        </div>
+        @if (task.dueDate) {
+        <span class="task-due-date" [class.overdue]="
+                      isOverdue(task.dueDate) &&
+                      task.status !== TaskStatus.Completed &&
+                      task.status !== TaskStatus.Cancelled
+                    ">
+          📅 {{ formatDate(task.dueDate) }}
+        </span>
+        }
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>

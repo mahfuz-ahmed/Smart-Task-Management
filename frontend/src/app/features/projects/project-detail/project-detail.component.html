@@ -1,0 +1,601 @@
+<div class="project-detail page-enter">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb" style="margin-bottom: 20px;">
+    <a routerLink="/projects" class="breadcrumb-link">Projects</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="breadcrumb-current">{{ project()?.name || 'Loading...' }}</span>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+  <div class="page-loading">
+    <div class="spinner spinner-lg"></div>
+    <p>Loading project...</p>
+  </div>
+  }
+
+  @if (!loading() && project()) {
+  <!-- Project Header -->
+  <div class="project-header">
+    <div class="project-info">
+      <div class="flex items-center gap-3 flex-wrap">
+        <h1 class="project-title">{{ project()!.name }}</h1>
+        <span class="badge" [class]="getStatusBadge(project()!.status)">{{
+          project()!.status || 'Active'
+          }}</span>
+        <span class="badge" [class]="'badge-' + getPriorityLabel(project()!.priority).toLowerCase()">{{
+          getPriorityLabel(project()!.priority) }}</span>
+      </div>
+      <p class="project-desc">{{ project()!.description }}</p>
+      <div class="project-meta">
+        <span class="meta-item">👤 {{ project()!.createdByName }}</span>
+        @if (project()!.startDate) {
+        <span class="meta-item">📅 {{ formatDate(project()!.startDate!) }}</span>
+        }
+        @if (project()!.endDate) {
+        <span class="meta-item">🏁 {{ formatDate(project()!.endDate!) }}</span>
+        }
+        <span class="meta-item">👥 {{ project()!.members?.length ?? 0 }} members</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="showMembersModal.set(true)" id="manage-members-btn">
+        👥 Members
+      </button>
+      <button class="btn btn-primary" (click)="openCreateTask()" id="add-task-btn">
+        + Add Task
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab() === 'kanban'" (click)="activeTab.set('kanban')" id="tab-kanban">
+      📋 Kanban Board
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'list'" (click)="activeTab.set('list')" id="tab-list">
+      📄 Task List
+    </button>
+  </div>
+
+  <!-- KANBAN BOARD -->
+  @if (activeTab() === 'kanban') {
+  <div class="kanban-board">
+    @for (col of kanbanColumns; track col.status) {
+    <div class="kanban-col">
+      <div class="kanban-col-header">
+        <div class="col-title">
+          <span class="col-dot" [style.background]="col.color"></span>
+          {{ col.label }}
+        </div>
+        <span class="col-count">{{ getTasksForStatus(col.status).length }}</span>
+      </div>
+
+      <div class="kanban-tasks">
+        @for (task of getTasksForStatus(col.status); track task.id) {
+        <div class="task-card" (click)="openTaskDetail(task)" [id]="'task-card-' + task.id">
+          <div class="task-card-top">
+            <span class="badge badge-sm" [class]="'badge-' + getPriorityBadgeClass(task.priority)">{{
+              getPriorityLabel(task.priority) }}</span>
+            <button class="btn btn-ghost btn-icon btn-sm" (click)="$event.stopPropagation(); confirmDeleteTask(task)"
+              style="width: 24px; height: 24px; padding: 0;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+              </svg>
+            </button>
+          </div>
+          <div class="task-title">{{ task.title }}</div>
+          @if (task.description) {
+          <div class="task-desc">
+            {{ task.description | slice: 0 : 80
+            }}{{ task.description.length > 80 ? '...' : '' }}
+          </div>
+          }
+          <div class="task-card-footer">
+            @if (task.assignedToName) {
+            <div class="task-assignee-chip" [title]="task.assignedToName">
+              <div class="avatar avatar-xs">
+                {{ task.assignedToName.charAt(0).toUpperCase() }}
+              </div>
+              <span class="task-assignee-name">{{ task.assignedToName }}</span>
+            </div>
+            }
+            @if (task.dueDate) {
+            <span class="task-due" [class.overdue]="isOverdue(task.dueDate)">
+              📅 {{ formatDate(task.dueDate) }}
+            </span>
+            }
+            @if (task.comments?.length) {
+            <span class="task-meta-badge">💬 {{ task.comments.length }}</span>
+            }
+          </div>
+          <!-- Status change buttons -->
+          <div class="task-status-actions" (click)="$event.stopPropagation()">
+            @if (col.status !== TaskStatus.ToDo) {
+            <button class="status-action-btn" (click)="moveTask(task, getPrevStatus(col.status))" title="Move back">
+              ←
+            </button>
+            }
+            @if (col.status !== TaskStatus.Cancelled) {
+            <button class="status-action-btn next" (click)="moveTask(task, getNextStatus(col.status))"
+              title="Move forward">
+              →
+            </button>
+            }
+          </div>
+        </div>
+        }
+
+        <!-- Add task shortcut -->
+        <button class="add-task-btn" (click)="openCreateTask(col.status)" [id]="'add-task-' + col.status">
+          + Add Task
+        </button>
+      </div>
+    </div>
+    }
+  </div>
+  }
+
+  <!-- TASK LIST VIEW -->
+  @if (activeTab() === 'list') {
+  <div class="card" style="padding: 0;">
+    <div class="table-wrapper">
+      <table class="table" id="task-list-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Priority</th>
+            <th>Assignee</th>
+            <th>Due Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (tasks().length === 0) {
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 48px; color: var(--text-muted);">
+              No tasks yet. Click "Add Task" to create one.
+            </td>
+          </tr>
+          }
+          @for (task of tasks(); track task.id) {
+          <tr (click)="openTaskDetail(task)" style="cursor: pointer;">
+            <td style="font-weight: 600;">{{ task.title }}</td>
+            <td>
+              <span class="badge" [class]="'badge-' + getTaskStatusBadgeClass(task.status)">{{
+                getStatusLabel(task.status) }}</span>
+            </td>
+            <td>
+              <span class="badge" [class]="'badge-' + getPriorityBadgeClass(task.priority)">{{
+                getPriorityLabel(task.priority) }}</span>
+            </td>
+            <td>
+              @if (task.assignedToName) {
+              <div class="flex items-center gap-2">
+                <div class="avatar avatar-sm">
+                  {{ task.assignedToName.charAt(0).toUpperCase() }}
+                </div>
+                <span class="text-sm">{{ task.assignedToName }}</span>
+              </div>
+              } @else {
+              <span class="text-muted text-sm">Unassigned</span>
+              }
+            </td>
+            <td [class.text-error]="task.dueDate && isOverdue(task.dueDate)" class="text-sm">
+              {{ task.dueDate ? formatDate(task.dueDate) : '—' }}
+            </td>
+            <td (click)="$event.stopPropagation()">
+              <div class="flex gap-1">
+                <button class="btn btn-ghost btn-sm btn-icon" (click)="openTaskDetail(task)" title="View">
+                  👁️
+                </button>
+                <button class="btn btn-ghost btn-sm btn-icon" (click)="confirmDeleteTask(task)" title="Delete">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+  }
+  }
+
+  <!-- ====================== TASK FORM MODAL ====================== -->
+  @if (showTaskModal()) {
+  <div class="modal-overlay" (click)="closeTaskModal()">
+    <div class="modal" (click)="$event.stopPropagation()" id="task-form-modal">
+      <div class="modal-header">
+        <h2 class="modal-title">{{ editingTask() ? 'Edit Task' : 'Create Task' }}</h2>
+        <button class="modal-close" (click)="closeTaskModal()">×</button>
+      </div>
+
+      <form [formGroup]="taskForm" (ngSubmit)="onTaskSubmit()" novalidate id="task-form">
+        <div class="form-group">
+          <label class="form-label" for="task-title">Title *</label>
+          <input id="task-title" type="text" class="form-control" [class.is-invalid]="isTaskInvalid('title')"
+            formControlName="title" placeholder="What needs to be done?" />
+          @if (isTaskInvalid('title')) {
+          <span class="form-error">Title is required</span>
+          }
+        </div>
+
+        <div class="form-group ai-group" style="margin-top: 16px;">
+          <div class="flex justify-between items-center">
+            <label class="form-label" for="task-desc">Description *</label>
+            <button type="button" class="btn btn-ghost btn-sm ai-enhance-btn" (click)="enhanceDescription()"
+              [disabled]="enhancing()" id="ai-enhance-btn">
+              @if (enhancing()) {
+              <span class="spinner spinner-sm"></span>
+              } @else {
+              🤖
+              }
+              AI Enhance
+            </button>
+          </div>
+          <textarea id="task-desc" class="form-control" [class.is-invalid]="isTaskInvalid('description')"
+            formControlName="description" placeholder="Describe the task in detail..." rows="4"></textarea>
+          @if (isTaskInvalid('description')) {
+          <span class="form-error">Description is required</span>
+          }
+          @if (enhancing()) {
+          <div class="ai-status">✨ Enhancing your description with AI...</div>
+          }
+        </div>
+
+        <div class="modal-form-row" style="margin-top: 16px;">
+          <div class="form-group">
+            <label class="form-label" for="task-priority">Priority</label>
+            <select id="task-priority" class="form-control" formControlName="priority">
+              @for (p of priorities; track p.value) {
+              <option [value]="p.value" [ngValue]="p.value">{{ p.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="task-status">Status</label>
+            <select id="task-status" class="form-control" formControlName="status">
+              @for (s of taskStatuses; track s.value) {
+              <option [value]="s.value" [ngValue]="s.value">{{ s.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-form-row" style="margin-top: 16px;">
+          <div class="form-group">
+            <label class="form-label" for="task-due">Due Date</label>
+            <input id="task-due" type="date" class="form-control" formControlName="dueDate" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="task-hours">Estimated Hours</label>
+            <input id="task-hours" type="number" class="form-control" formControlName="estimatedHours"
+              placeholder="e.g. 4" min="0.5" step="0.5" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 16px;">
+          <label class="form-label" for="task-assignee">Assignee</label>
+          <select id="task-assignee" class="form-control" formControlName="assignedToUserId">
+            <option value="" ngValue="">Unassigned</option>
+            @for (m of project()?.members || []; track m.userId) {
+            <option [value]="m.userId" [ngValue]="m.userId">{{ m.userFullName }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeTaskModal()">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary" [disabled]="savingTask()" id="task-save-btn"
+            style="min-width: 140px; min-height: 42px;">
+            @if (savingTask()) {
+            <span class="spinner spinner-sm"></span>
+            <span style="color: #ffffff; font-weight: 600;">Saving...</span>
+            } @else {
+            <span style="color: #ffffff; font-weight: 600;">{{
+              editingTask() ? 'Update Task' : 'Create Task'
+              }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- ====================== TASK DETAIL MODAL ====================== -->
+  @if (viewingTask()) {
+  <div class="modal-overlay" (click)="viewingTask.set(null)">
+    <div class="modal modal-lg" (click)="$event.stopPropagation()" id="task-detail-modal">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">{{ viewingTask()!.title }}</h2>
+          <div class="flex gap-2 flex-wrap" style="margin-top: 8px;">
+            <span class="badge" [class]="'badge-' + getTaskStatusBadgeClass(viewingTask()!.status)">{{
+              getStatusLabel(viewingTask()!.status) }}</span>
+            <span class="badge" [class]="'badge-' + getPriorityBadgeClass(viewingTask()!.priority)">{{
+              getPriorityLabel(viewingTask()!.priority) }}</span>
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary btn-sm" (click)="openEditTask(viewingTask()!)">
+            ✏️ Edit
+          </button>
+          <button class="modal-close" (click)="viewingTask.set(null)">×</button>
+        </div>
+      </div>
+
+      <div class="task-detail-grid">
+        <div class="task-detail-main">
+          <!-- Description -->
+          <div class="detail-section">
+            <div class="detail-section-title">Description</div>
+            <div class="detail-desc">
+              {{ viewingTask()!.description || 'No description provided.' }}
+            </div>
+          </div>
+
+          <!-- Comments -->
+          <div class="detail-section">
+            <div class="detail-section-title">
+              Comments ({{ viewingTask()!.comments?.length ?? 0 }})
+            </div>
+
+            @for (comment of viewingTask()!.comments; track comment.id) {
+            <div class="comment">
+              <div class="avatar avatar-sm">
+                {{ comment.authorName.charAt(0).toUpperCase() }}
+              </div>
+              <div class="comment-body">
+                <div class="comment-header">
+                  <strong>{{ comment.authorName }}</strong>
+                  <span class="comment-time">{{ formatTime(comment.createdAt) }}</span>
+                </div>
+                <div class="comment-text">{{ comment.content }}</div>
+              </div>
+            </div>
+            }
+
+            <!-- Add comment -->
+            <form [formGroup]="commentForm" (ngSubmit)="onAddComment()" class="comment-form" id="comment-form">
+              <div class="avatar avatar-sm">{{ currentUserInitials() }}</div>
+              <div class="comment-input-wrap">
+                <input type="text" class="form-control" formControlName="content" placeholder="Add a comment..."
+                  id="comment-input" />
+                <button type="submit" class="btn btn-primary btn-sm" [disabled]="savingComment()"
+                  id="submit-comment-btn">
+                  @if (savingComment()) {
+                  <span class="spinner spinner-sm"></span>
+                  } @else {
+                  Send
+                  }
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Sidebar details -->
+        <div class="task-detail-sidebar">
+          <div class="detail-meta-item">
+            <span class="meta-label">Assignee</span>
+            @if (viewingTask()!.assignedToName) {
+            <div class="flex items-center gap-2">
+              <div class="avatar avatar-sm">
+                {{ viewingTask()!.assignedToName!.charAt(0).toUpperCase() }}
+              </div>
+              <span class="text-sm">{{ viewingTask()!.assignedToName }}</span>
+            </div>
+            } @else {
+            <span class="text-muted text-sm">Unassigned</span>
+            }
+          </div>
+
+          <div class="detail-meta-item">
+            <span class="meta-label">Due Date</span>
+            <span class="text-sm" [class.text-error]="
+                      viewingTask()!.dueDate && isOverdue(viewingTask()!.dueDate!)
+                    ">
+              {{
+              viewingTask()!.dueDate ? formatDate(viewingTask()!.dueDate!) : 'No due date'
+              }}
+            </span>
+          </div>
+
+          @if (viewingTask()!.estimatedHours) {
+          <div class="detail-meta-item">
+            <span class="meta-label">Estimated</span>
+            <span class="text-sm">{{ viewingTask()!.estimatedHours }}h</span>
+          </div>
+          }
+
+          <div class="detail-meta-item">
+            <span class="meta-label">Created By</span>
+            <span class="text-sm">{{ viewingTask()!.createdByName }}</span>
+          </div>
+
+          <div class="detail-meta-item">
+            <span class="meta-label">Created</span>
+            <span class="text-sm">{{ formatDate(viewingTask()!.createdAt) }}</span>
+          </div>
+
+          <!-- Quick status change -->
+          <div class="detail-meta-item" style="margin-top: 8px;">
+            <span class="meta-label">Change Status</span>
+            <div class="status-quick-change">
+              @for (s of taskStatuses; track s.value) {
+              <button class="status-quick-btn" [class.active]="viewingTask()!.status === s.value"
+                (click)="quickChangeStatus(viewingTask()!, s.value)" [id]="'status-btn-' + s.value">
+                {{ s.label }}
+              </button>
+              }
+            </div>
+          </div>
+
+          <!-- Activity Log -->
+          @if (viewingTask()!.activityLogs?.length) {
+          <div class="detail-section" style="margin-top: 16px;">
+            <div class="detail-section-title">Activity</div>
+            @for (log of viewingTask()!.activityLogs?.slice(0, 5); track log.id) {
+            <div class="activity-log-item">
+              <div class="activity-dot"></div>
+              <div>
+                <div class="text-sm">{{ log.description }}</div>
+                <div class="text-xs text-muted">
+                  {{ log.performedByName }} · {{ formatTime(log.createdAt) }}
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- MEMBERS MODAL -->
+  @if (showMembersModal()) {
+  <div class="modal-overlay" (click)="closeMembersModal()">
+    <div class="modal" (click)="$event.stopPropagation()" id="members-modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Project Members</h2>
+        <button class="modal-close" (click)="closeMembersModal()">×</button>
+      </div>
+
+      <!-- Members list -->
+      <div class="members-list">
+        @for (m of project()?.members || []; track m.userId) {
+        <div class="member-row">
+          <div class="avatar">{{ m.userFullName.charAt(0).toUpperCase() }}</div>
+          <div class="flex-1">
+            <div class="font-semibold text-sm">{{ m.userFullName }}</div>
+            <div class="text-xs text-muted">{{ m.email }}</div>
+          </div>
+          <span class="badge badge-primary">{{ m.role }}</span>
+          @if (isProjectAdmin()) {
+          <button class="btn btn-danger btn-sm btn-icon" (click)="removeMember(m.userId)" title="Remove">
+            ×
+          </button>
+          }
+        </div>
+        }
+      </div>
+
+      <!-- Add member -->
+      @if (isProjectAdmin()) {
+      @if (!isAddingMember()) {
+      <div class="add-member-section" style="margin-top: 20px; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn btn-primary" (click)="isAddingMember.set(true)" id="add-member-btn">
+          + Add Member
+        </button>
+      </div>
+      } @else {
+      <div class="inline-add-member"
+        style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid var(--border-default);">
+        <h4 style="margin: 0 0 12px 0; font-size: 14px; color: var(--text-primary);">
+          Add New Member
+        </h4>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start;">
+          <div style="flex: 1; position: relative; min-width: 200px;">
+            <input type="text" class="form-control" [formControl]="searchControl"
+              placeholder="Search user by name or email..." />
+
+            @if (filteredUsers$ | async; as users) {
+            @if (users.length > 0 && searchControl.value && !selectedUser()) {
+            <div class="autocomplete-dropdown"
+              style="position: absolute; top: 100%; left: 0; right: 0; background: var(--color-bg-modal); border: 1px solid var(--border-default); border-radius: 8px; z-index: 100; margin-top: 4px; box-shadow: var(--shadow-xl); max-height: 200px; overflow-y: auto;">
+              @for (u of users; track u.id) {
+              <div class="dropdown-item" (click)="selectUser(u)"
+                style="padding: 10px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border-subtle);">
+                <div class="avatar avatar-sm" style="font-size: 10px;">
+                  {{ getInitials(u) }}
+                </div>
+                <div>
+                  <div style="font-size: 13px; font-weight: 600;">
+                    {{ u.fullName || u.firstName + ' ' + u.lastName }}
+                  </div>
+                  <div style="font-size: 11px; color: var(--text-muted);">
+                    {{ u.email }}
+                  </div>
+                </div>
+              </div>
+              }
+            </div>
+            }
+            }
+
+            @if (selectedUser()) {
+            <div
+              style="position: absolute; right: 10px; top: 10px; cursor: pointer; font-size: 12px; color: var(--text-muted);"
+              (click)="clearSelection()">
+              ✖ Clear
+            </div>
+            }
+          </div>
+
+          <select class="form-control" [formControl]="projectRoleControl" style="width: 130px;">
+            <option [ngValue]="2">Member</option>
+            <option [ngValue]="1">Manager</option>
+          </select>
+
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" (click)="cancelAddMember()">Cancel</button>
+            <button class="btn btn-primary" [disabled]="!selectedUser() || savingMember()" (click)="submitAddMember()">
+              @if (savingMember()) {
+              <span class="spinner spinner-sm"></span>
+              } @else {
+              Add
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+      }
+      }
+    </div>
+  </div>
+  }
+
+  <!-- DELETE TASK CONFIRM -->
+  @if (deleteTaskTarget()) {
+  <div class="modal-overlay" (click)="deleteTaskTarget.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()" style="max-width: 400px;" id="delete-task-modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Delete Task</h2>
+        <button class="modal-close" (click)="deleteTaskTarget.set(null)">×</button>
+      </div>
+      <p class="text-secondary" style="margin-bottom: 8px;">
+        Delete <strong>{{ deleteTaskTarget()!.title }}</strong>?
+      </p>
+      <p class="text-xs text-muted">This cannot be undone.</p>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="deleteTaskTarget.set(null)">Cancel</button>
+        <button class="btn btn-danger" (click)="onDeleteTask()" [disabled]="savingTask()" id="confirm-delete-task-btn">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- REMOVE MEMBER CONFIRMATION MODAL -->
+  <app-confirmation-modal
+    [isOpen]="showRemoveMemberModal()"
+    [title]="'Remove Member'"
+    [message]="'Are you sure you want to remove ' + (removeMemberTarget()?.userFullName || 'this member') + ' from the project?'"
+    [confirmText]="'Remove Member'"
+    [cancelText]="'Cancel'"
+    [isDangerous]="true"
+    [isLoading]="removingMember()"
+    (confirm)="confirmRemoveMember()"
+    (cancel)="cancelRemoveMember()"
+  />
+</div>

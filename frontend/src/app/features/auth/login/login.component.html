@@ -1,0 +1,80 @@
+<div class="auth-page">
+  <!-- Background orbs -->
+  <div class="auth-orb auth-orb-1"></div>
+  <div class="auth-orb auth-orb-2"></div>
+  <div class="auth-orb auth-orb-3"></div>
+
+  <div class="auth-container">
+    <!-- Brand -->
+    <div class="auth-brand">
+      <div class="brand-logo">⚡</div>
+      <h1 class="brand-title">SmartTask</h1>
+      <p class="brand-subtitle">Intelligent Project & Task Management</p>
+    </div>
+
+    <!-- Card -->
+    <div class="auth-card">
+      <div class="auth-card-header">
+        <h2>Welcome back</h2>
+        <p>Sign in to continue to your workspace</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate id="login-form">
+        <!-- Email -->
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email Address</label>
+          <div class="input-with-icon">
+            <span class="input-icon">✉️</span>
+            <input id="login-email" type="email" class="form-control" [class.is-invalid]="isInvalid('email')"
+              formControlName="email" placeholder="you@example.com" autocomplete="email" />
+          </div>
+          @if (isInvalid('email')) {
+          <span class="form-error">Please enter a valid email address</span>
+          }
+        </div>
+
+        <!-- Password -->
+        <div class="form-group" style="margin-top: 16px;">
+          <label class="form-label" for="login-password">Password</label>
+          <div class="input-with-icon">
+            <span class="input-icon">🔒</span>
+            <input id="login-password" [type]="showPassword() ? 'text' : 'password'" class="form-control"
+              [class.is-invalid]="isInvalid('password')" formControlName="password" placeholder="Enter your password"
+              autocomplete="current-password" />
+            <button type="button" class="input-toggle" (click)="togglePassword()"
+              aria-label="Toggle password visibility">
+              {{ showPassword() ? '🙈' : '👁️' }}
+            </button>
+          </div>
+          @if (isInvalid('password')) {
+          <span class="form-error">Password is required</span>
+          }
+        </div>
+
+        <!-- Error banner -->
+        @if (errorMessage()) {
+        <div class="auth-error-banner" role="alert">
+          <span>⚠️</span> {{ errorMessage() }}
+        </div>
+        }
+
+        <!-- Submit -->
+        <button type="submit" class="btn btn-primary btn-lg w-full" [class.btn-loading]="loading()"
+          [disabled]="loading()" style="margin-top: 24px;" id="login-submit-btn">
+          @if (loading()) {
+          <span class="spinner spinner-sm"></span> Signing in...
+          } @else {
+          Sign In
+          }
+        </button>
+      </form>
+
+      <div class="auth-divider">
+        <span>Don't have an account?</span>
+        <a routerLink="/auth/register" id="register-link">Create account</a>
+      </div>
+    </div>
+
+    <p class="auth-footnote">© 2025 SmartTask Management. All rights reserved.</p>
+  </div>
+</div>

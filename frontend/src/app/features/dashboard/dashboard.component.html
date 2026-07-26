@@ -1,0 +1,180 @@
+<div class="dashboard page-enter">
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">
+        Good {{ greeting() }}, <span class="gradient-text">{{ firstName() }}</span> 👋
+      </h1>
+      <p class="page-subtitle">Here's what's happening in your workspace today.</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/projects" class="btn btn-primary" id="dashboard-go-projects-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
+        </svg>
+        View Projects
+      </a>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  @if (loading()) {
+  <div class="page-loading">
+    <div class="spinner spinner-lg"></div>
+    <p>Loading your dashboard...</p>
+  </div>
+  }
+
+  @if (!loading() && stats()) {
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card stat-indigo">
+      <div class="stat-icon" style="background: rgba(99,102,241,0.15);">📁</div>
+      <div class="stat-label">Total Projects</div>
+      <div class="stat-value gradient-text">{{ stats()!.totalProjects }}</div>
+      <div class="stat-change up">↑ Active workspace</div>
+    </div>
+
+    <div class="stat-card stat-blue">
+      <div class="stat-icon" style="background: rgba(59,130,246,0.15);">📋</div>
+      <div class="stat-label">Total Tasks</div>
+      <div class="stat-value" style="color: #60a5fa;">{{ stats()!.totalTasks }}</div>
+      <div class="stat-change">Across all projects</div>
+    </div>
+
+    <div class="stat-card stat-purple">
+      <div class="stat-icon" style="background: rgba(168,85,247,0.15);">✅</div>
+      <div class="stat-label">My Tasks</div>
+      <div class="stat-value" style="color: #c084fc;">{{ stats()!.myTasks }}</div>
+      <div class="stat-change">Assigned to you</div>
+    </div>
+
+    <div class="stat-card stat-green">
+      <div class="stat-icon" style="background: rgba(16,185,129,0.15);">🎯</div>
+      <div class="stat-label">Completed</div>
+      <div class="stat-value" style="color: #34d399;">{{ stats()!.completedTasks }}</div>
+      <div class="stat-change up">{{ completionRate() }}% rate</div>
+    </div>
+
+    <div class="stat-card stat-red">
+      <div class="stat-icon" style="background: rgba(239,68,68,0.15);">⏰</div>
+      <div class="stat-label">Overdue</div>
+      <div class="stat-value" style="color: #f87171;">{{ stats()!.overdueTasks }}</div>
+      <div class="stat-change down">Needs attention</div>
+    </div>
+
+    <div class="stat-card stat-amber">
+      <div class="stat-icon" style="background: rgba(245,158,11,0.15);">📅</div>
+      <div class="stat-label">Upcoming</div>
+      <div class="stat-value" style="color: #fbbf24;">{{ stats()!.upcomingTasks }}</div>
+      <div class="stat-change">Due in 7 days</div>
+    </div>
+  </div>
+
+  <!-- Lower grid -->
+  <div class="dashboard-grid">
+    <!-- Task Status Chart -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Tasks by Status</h3>
+      </div>
+      <div class="status-chart">
+        @for (status of statusItems(); track status.key) {
+        <div class="status-row">
+          <div class="status-info">
+            <span class="status-dot" [style.background]="status.color"></span>
+            <span class="status-name">{{ status.label }}</span>
+          </div>
+          <div class="status-bar-wrap">
+            <div class="status-bar" [style.width.%]="status.pct" [style.background]="status.color"></div>
+          </div>
+          <span class="status-count">{{ status.count }}</span>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Priority Distribution -->
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Tasks by Priority</h3>
+      </div>
+      <div class="priority-grid">
+        @for (item of priorityItems(); track item.key) {
+        <div class="priority-item" [style.border-color]="item.color + '40'">
+          <div class="priority-dot" [style.background]="item.color"></div>
+          <div class="priority-details">
+            <div class="priority-count" [style.color]="item.color">{{ item.count }}</div>
+            <div class="priority-label">{{ item.label }}</div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+
+    <!-- Project Progress -->
+    <div class="card card-wide">
+      <div class="card-header">
+        <h3 class="card-title">Project Progress</h3>
+        <a routerLink="/projects" class="btn btn-ghost btn-sm" id="dashboard-all-projects-link">View all</a>
+      </div>
+      @if (stats()!.projectProgress.length === 0) {
+      <div class="empty-state" style="padding: 32px 0;">
+        <div class="empty-state-icon">📁</div>
+        <div class="empty-state-title">No projects yet</div>
+        <div class="empty-state-desc">Create your first project to see progress here</div>
+        <a routerLink="/projects" class="btn btn-primary btn-sm" style="margin-top: 16px;">Create Project</a>
+      </div>
+      }
+      @for (proj of stats()!.projectProgress; track proj.projectId) {
+      <div class="project-progress-item">
+        <div class="project-progress-header">
+          <span class="project-progress-name">{{ proj.projectName }}</span>
+          <span class="project-progress-pct">{{ proj.completionPercentage }}%</span>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" [style.width.%]="proj.completionPercentage"></div>
+        </div>
+        <div class="project-progress-meta">
+          {{ proj.completedTasks }} / {{ proj.totalTasks }} tasks completed
+        </div>
+      </div>
+      }
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card card-wide">
+      <div class="card-header">
+        <h3 class="card-title">Recent Activity</h3>
+      </div>
+      @if (stats()!.recentActivity.length === 0) {
+      <div class="empty-state" style="padding: 24px 0;">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-desc">No recent activity to show</div>
+      </div>
+      }
+      <div class="activity-list">
+        @for (item of stats()!.recentActivity; track item.id) {
+        <div class="activity-item">
+          <div class="activity-avatar">
+            {{ item.performedByName.charAt(0).toUpperCase() }}
+          </div>
+          <div class="activity-content">
+            <div class="activity-text">
+              <strong>{{ item.performedByName }}</strong> {{ item.action }}
+              @if (item.taskTitle) {
+              <span class="activity-task">{{ item.taskTitle }}</span>
+              }
+            </div>
+            @if (item.projectName) {
+            <div class="activity-project">in {{ item.projectName }}</div>
+            }
+          </div>
+          <div class="activity-time">{{ formatTime(item.createdAt) }}</div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+</div>
