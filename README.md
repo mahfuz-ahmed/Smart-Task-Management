@@ -6,6 +6,21 @@
 
 ---
 
+## Default Seeded Accounts
+
+On the first application startup, the database is automatically migrated and seeded with the following demo accounts.
+
+| Role            | Email                 | Password       |
+| --------------- | --------------------- | -------------- |
+| **Admin**       | `admin@smarttask.com` | `Admin@123456` |
+| **Team Member** | `user@smarttask.com`  | `User@123456`  |
+
+> **⚠️ Important**
+> - ✅ Auto-created on first run (only if database is empty)
+> - ❌ Admin Cannot be created manually via registration
+> - 📝 New users register as **Project Manager** or **Team Member**
+
+
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
