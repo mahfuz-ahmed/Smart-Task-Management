@@ -793,8 +793,8 @@ Contributions are welcome! Please follow these steps:
 
 **Mahfuz Ahmed**
 
-- GitHub: [@yourusername](https://github.com/Mahfuz-Ahmed)
-- LinkedIn: [Your Name](https://linkedin.com/in/Mahfuz-Ahmed)
+- GitHub: [@Mahfuz Ahmed](https://github.com/Mahfuz-Ahmed)
+- LinkedIn: [Mahfuz Ahmed](https://linkedin.com/in/the-mahfuz-ahmed)
 
 ---
 
