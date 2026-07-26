@@ -145,30 +145,6 @@ Features:
 
 ---
 
-### Step 7: Push to GitHub
-
-**First push:**
-```bash
-git branch -M main
-git push -u origin main
-```
-
-**Subsequent pushes:**
-```bash
-git push
-```
-
----
-
-### Step 8: Verify on GitHub
-
-1. Go to your GitHub repository URL
-2. Check that all files are visible
-3. Verify README.md displays correctly
-4. Check that .gitignore worked (no bin/, obj/, node_modules/)
-
----
-
 ## ⚠️ CRITICAL: Remove Sensitive Data
 
 ### Before Pushing, Update These Files:
@@ -279,35 +255,6 @@ git commit -m "test: Add unit tests for TaskService"
 
 ---
 
-## 🔄 Regular Git Workflow
-
-### Daily Workflow:
-
-**1. Check status:**
-```bash
-git status
-```
-
-**2. Pull latest changes:**
-```bash
-git pull origin main
-```
-
-**3. Make your changes...**
-
-**4. Stage changes:**
-```bash
-git add .
-```
-
-**5. Commit:**
-```bash
-git commit -m "Your message"
-```
-
-**6. Push:**
-```bash
-git push
 ```
 
 ---
@@ -339,81 +286,6 @@ git add .
 git commit -m "fix: Correct login redirect logic"
 git push -u origin fix/login-redirect-issue
 ```
-
----
-
-## 🔍 Useful Git Commands
-
-### Check remote:
-```bash
-git remote -v
-```
-
-### View commit history:
-```bash
-git log --oneline
-```
-
-### View changes:
-```bash
-git diff
-```
-
-### Undo uncommitted changes:
-```bash
-git checkout -- filename
-```
-
-### Remove file from staging:
-```bash
-git reset HEAD filename
-```
-
-### Amend last commit:
-```bash
-git commit --amend -m "New message"
-```
-
----
-
-## 🚫 Common Issues & Solutions
-
-### Issue: "Repository not found"
-**Solution:**
-```bash
-git remote set-url origin https://github.com/YOUR_CORRECT_USERNAME/Smart-Task-Management.git
-```
-
-### Issue: "Permission denied"
-**Solution:**
-1. Check your GitHub credentials
-2. Use HTTPS with personal access token
-3. Or set up SSH keys
-
-### Issue: "Merge conflict"
-**Solution:**
-```bash
-git pull origin main
-# Resolve conflicts in files
-git add .
-git commit -m "Resolve merge conflicts"
-git push
-```
-
-### Issue: "Large files warning"
-**Solution:**
-Don't commit:
-- node_modules/
-- bin/, obj/
-- Large binaries
-
-Add to .gitignore and:
-```bash
-git rm -r --cached node_modules/
-git commit -m "Remove node_modules from tracking"
-```
-
----
 
 ## 📊 Repository Structure on GitHub
 
@@ -459,27 +331,11 @@ After pushing:
 
 1. **Get Repository URL:**
    ```
-   https://github.com/YOUR_USERNAME/Smart-Task-Management
+   https://github.com/Mahfuz-Ahmed/Smart-Task-Management
    ```
-
-2. **Share with Interviewer:**
-   - Repository URL
-   - README.md (visible on repo page)
-   - All documentation files
-
-3. **Ensure Public Repo** (if required):
+2. **Ensure Public Repo** (if required):
    - Go to Settings → General
    - Make repository public (if currently private)
-
----
-
-## 📞 Need Help?
-
-If you encounter issues:
-
-1. Check GitHub documentation: https://docs.github.com
-2. Git documentation: https://git-scm.com/doc
-3. Ask on Stack Overflow with the `git` tag
 
 ---
 
