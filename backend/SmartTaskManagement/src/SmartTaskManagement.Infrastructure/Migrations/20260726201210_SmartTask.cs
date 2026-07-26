@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SmartTaskManagement.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class secondtime : Migration
+    public partial class SmartTask : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -12,8 +12,8 @@ using SmartTaskManagement.Infrastructure.Data;
 namespace SmartTaskManagement.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260726105133_secondtime")]
-    partial class secondtime
+    [Migration("20260726201210_SmartTask")]
+    partial class SmartTask
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
