@@ -61,4 +61,4 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           local-dir: ./publish/
-          server-dir: /wwwroot/  # Eta add kore dile shob file sidha wwwroot e chole jabe
+          server-dir: /taskmangement/  # Eta change kore /taskmangement/ kore din
