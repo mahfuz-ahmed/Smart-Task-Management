@@ -53,7 +53,7 @@ jobs:
           Remove-Item -Recurse -Force "./publish/wwwroot/*" -ErrorAction SilentlyContinue
           Copy-Item -Path "./frontend/dist/*" -Destination "./publish/wwwroot/" -Recurse -Force
 
-      # ---------- Deploy ----------
+     # ---------- Deploy ----------
       - name: Deploy to SmarterASP.NET
         shell: powershell
         run: |
@@ -62,7 +62,7 @@ jobs:
           & $msdeploy `
             -verb:sync `
             -source:contentPath="$(pwd)\publish" `
-            -dest:contentPath="${{ secrets.WEBSITE_NAME }}",ComputerName="${{ secrets.SERVER_COMPUTER_NAME }}",UserName="${{ secrets.SERVER_USERNAME }}",Password="${{ secrets.SERVER_PASSWORD }}",AuthType="Basic" `
+            -dest:contentPath="${{ secrets.WEBSITE_NAME }}",ComputerName="https://${{ secrets.SERVER_COMPUTER_NAME }}:8172/msdeploy.axd?site=${{ secrets.WEBSITE_NAME }}",UserName="${{ secrets.SERVER_USERNAME }}",Password="${{ secrets.SERVER_PASSWORD }}",AuthType="Basic" `
             -allowUntrusted `
             -enableRule:AppOffline `
             -enableRule:DoNotDeleteRule
