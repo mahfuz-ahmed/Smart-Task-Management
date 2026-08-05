@@ -53,16 +53,11 @@ jobs:
           Remove-Item -Recurse -Force "./publish/wwwroot/*" -ErrorAction SilentlyContinue
           Copy-Item -Path "./frontend/dist/*" -Destination "./publish/wwwroot/" -Recurse -Force
 
-     # ---------- Deploy ----------
-      - name: Deploy to SmarterASP.NET
-        shell: powershell
-        run: |
-          $msdeploy = "C:\Program Files\IIS\Microsoft Web Deploy V3\msdeploy.exe"
-
-          & $msdeploy `
-            -verb:sync `
-            -source:contentPath="$(pwd)\publish" `
-            -dest:contentPath="${{ secrets.WEBSITE_NAME }}",ComputerName="https://${{ secrets.SERVER_COMPUTER_NAME }}:8172/msdeploy.axd?site=${{ secrets.WEBSITE_NAME }}",UserName="${{ secrets.SERVER_USERNAME }}",Password="${{ secrets.SERVER_PASSWORD }}",AuthType="Basic" `
-            -allowUntrusted `
-            -enableRule:AppOffline `
-            -enableRule:DoNotDeleteRule
+      # ---------- Deploy via FTP ----------
+      - name: Deploy to SmarterASP.NET via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.SERVER_COMPUTER_NAME }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          local-dir: ./publish/
