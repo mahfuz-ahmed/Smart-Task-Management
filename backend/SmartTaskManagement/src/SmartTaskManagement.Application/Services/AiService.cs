@@ -1,5 +1,5 @@
 ﻿using SmartTaskManagement.Application.Common.Extensions;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.ExternalServices;
 
 namespace SmartTaskManagement.Infrastructure.Services;
 

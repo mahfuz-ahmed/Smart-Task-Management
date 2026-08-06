@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SmartTaskManagement.Application.DTOs.Dashboard;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.ExternalServices;
 using SmartTaskManagement.Application.Mappings;
 using SmartTaskManagement.Domain.Interfaces;
 using SmartTaskManagement.Infrastructure.Data;

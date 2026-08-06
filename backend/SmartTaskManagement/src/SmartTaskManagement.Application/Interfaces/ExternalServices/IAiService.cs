@@ -1,4 +1,4 @@
-namespace SmartTaskManagement.Application.Interfaces;
+namespace SmartTaskManagement.Application.Interfaces.ExternalServices;
 
 /// <summary>
 /// Strategy interface — swap GitHub Models for any other AI provider

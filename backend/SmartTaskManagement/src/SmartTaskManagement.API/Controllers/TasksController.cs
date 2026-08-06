@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.DTOs.Tasks;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.Services;
 
 namespace SmartTaskManagement.API.Controllers;
 
@@ -76,8 +76,6 @@ public sealed class TasksController : ControllerBase
     }
 
     [HttpPatch("{taskId:guid}/assign")]
-    //[Authorize(Roles = "Admin,ProjectManager")]
-
     public async Task<IActionResult> Assign(Guid projectId, Guid taskId,
         [FromBody] AssignTaskDto dto, CancellationToken ct)
     {

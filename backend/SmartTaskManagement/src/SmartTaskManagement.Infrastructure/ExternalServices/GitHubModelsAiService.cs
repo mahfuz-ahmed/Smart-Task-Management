@@ -1,8 +1,8 @@
-using System.Net.Http.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.ExternalServices;
+using System.Net.Http.Json;
+using System.Text.Json.Serialization;
 
 namespace SmartTaskManagement.Infrastructure.Services;
 
@@ -42,6 +42,17 @@ public sealed class GitHubModelsAiService : IAiService
             5. Produce actionable task descriptions using imperative language.
             Return ONLY the improved task description. Do not add explanations, lists, headers, or comments.
             """;
+
+        //var system = """
+        //You are an expert code reviewer. When reviewing code:
+        //1. Identify bugs and potential issues
+        //2. Suggest performance improvements
+        //3. Check for security vulnerabilities
+        //4. Recommend better practices
+        //5. Provide actionable feedback
+
+        //Format your response clearly with sections for: Issues, Improvements, Security, Best Practices.
+        //""";
 
         var user = taskTitle != null
             ? $"Task Title: {taskTitle}\n\nDescription: {description}"
@@ -122,10 +133,12 @@ public sealed class GitHubModelsAiService : IAiService
     {
         [JsonPropertyName("choices")] public List<Choice>? Choices { get; set; }
     }
+
     private sealed class Choice
     {
         [JsonPropertyName("message")] public Msg? Message { get; set; }
     }
+
     private sealed class Msg
     {
         [JsonPropertyName("content")] public string? Content { get; set; }

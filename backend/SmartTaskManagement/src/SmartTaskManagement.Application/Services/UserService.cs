@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using SmartTaskManagement.Application.DTOs.Users;
 using SmartTaskManagement.Application.Exceptions;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.Services;
 using SmartTaskManagement.Domain.Entities;
 using SmartTaskManagement.Domain.Interfaces;
 

@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.DTOs.Users;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.Services;
 using System.Security.Claims;
 
 namespace SmartTaskManagement.Api.Controllers;

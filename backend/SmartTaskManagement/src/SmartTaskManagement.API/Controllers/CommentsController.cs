@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.DTOs.Comments;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.Services;
 
 namespace SmartTaskManagement.API.Controllers;
 
@@ -55,5 +55,6 @@ public sealed class CommentsController : ControllerBase
     }
 
     private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
     private IEnumerable<string> GetRoles() => User.FindAll(ClaimTypes.Role).Select(c => c.Value);
 }

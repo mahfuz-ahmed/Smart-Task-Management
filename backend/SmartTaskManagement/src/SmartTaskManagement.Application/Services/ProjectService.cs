@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.DTOs.Projects;
 using SmartTaskManagement.Application.Exceptions;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.Services;
 using SmartTaskManagement.Application.Mappings;
 using SmartTaskManagement.Domain.Entities;
 using SmartTaskManagement.Domain.Enums;
@@ -98,11 +98,12 @@ public sealed class ProjectService : IProjectService
         CancellationToken ct = default)
     {
         // First, load with details for authorization check
-        var projectForAuth = await _uow.Projects.GetByIdWithDetailsAsync(id, ct)
-            ?? throw new NotFoundException(nameof(Project), id);
+
+        //var projectForAuth = await _uow.Projects.GetByIdWithDetailsAsync(id, ct)
+        //    ?? throw new NotFoundException(nameof(Project), id);
 
         // Check if user can update this project
-        AuthorizationHelper.EnsureCanUpdateProject(roles, projectForAuth, requestingUserId);
+        AuthorizationHelper.EnsureCanUpdateProject(roles);
 
         // Now load the project WITHOUT navigation properties for clean update
         var project = await _uow.Projects.GetByIdAsync(id, ct)
@@ -141,7 +142,7 @@ public sealed class ProjectService : IProjectService
             ?? throw new NotFoundException(nameof(Project), id);
 
         // Check if user can delete this project
-        AuthorizationHelper.EnsureCanDeleteProject(roles, project.CreatedByUserId, requestingUserId);
+        AuthorizationHelper.EnsureCanDeleteProject(roles);
 
         // Soft delete the project itself
         _uow.Projects.SoftDelete(project, requestingUserId.ToString());
@@ -150,7 +151,7 @@ public sealed class ProjectService : IProjectService
         foreach (var task in project.Tasks.Where(t => !t.IsDeleted))
         {
             _uow.Tasks.SoftDelete(task, requestingUserId.ToString());
-            
+
             // Soft delete task comments
             foreach (var comment in task.Comments.Where(c => !c.IsDeleted))
             {
@@ -158,7 +159,7 @@ public sealed class ProjectService : IProjectService
                 comment.DeletedAtUtc = DateTime.UtcNow;
                 comment.DeletedBy = requestingUserId.ToString();
             }
-            
+
             // Soft delete task activity logs
             foreach (var log in task.ActivityLogs.Where(l => !l.IsDeleted))
             {
@@ -167,7 +168,7 @@ public sealed class ProjectService : IProjectService
                 log.DeletedBy = requestingUserId.ToString();
             }
         }
-        
+
         // Deactivate project members
         foreach (var member in project.Members.Where(m => m.IsActive))
         {
@@ -265,7 +266,6 @@ public sealed class ProjectService : IProjectService
 
         _logger.LogInformation("Member removed: {UserId} from project {ProjectId}", userId, projectId);
     }
-    
 
     // ── Private Helper Methods ────────────────────────────────────────────────
 

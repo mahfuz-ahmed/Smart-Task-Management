@@ -1,6 +1,6 @@
 using SmartTaskManagement.Application.DTOs.Comments;
 using SmartTaskManagement.Application.Exceptions;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.Services;
 using SmartTaskManagement.Application.Mappings;
 using SmartTaskManagement.Domain.Entities;
 using SmartTaskManagement.Domain.Enums;
@@ -82,7 +82,6 @@ public sealed class TaskCommentService : ITaskCommentService
         comment.Content = dto.Content.Trim();
         comment.IsEdited = true;
         comment.EditedAtUtc = DateTime.UtcNow;
-
         _uow.TaskComments.Update(comment);
         await _uow.SaveChangesAsync(ct);
 

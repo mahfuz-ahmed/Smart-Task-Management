@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.DTOs.Tasks;
 using SmartTaskManagement.Application.Exceptions;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.Services;
 using SmartTaskManagement.Application.Mappings;
 using SmartTaskManagement.Domain.Entities;
 using SmartTaskManagement.Domain.Enums;
@@ -21,7 +21,7 @@ public sealed class TaskService : ITaskService
 
     public TaskService(IUnitOfWork uow, ILogger<TaskService> logger, AppDbContext context)
     {
-        _uow    = uow;
+        _uow = uow;
         _logger = logger;
         _context = context;
     }
@@ -32,7 +32,7 @@ public sealed class TaskService : ITaskService
 
         var (items, total) = await _uow.Tasks.GetPagedByProjectAsync(
             projectId, query.Search,
-            query.Status.HasValue   ? (TaskStatus?)query.Status.Value     : null,
+            query.Status.HasValue ? (TaskStatus?)query.Status.Value : null,
             query.Priority.HasValue ? (TaskPriority?)query.Priority.Value : null,
             query.AssignedToUserId,
             query.SortBy, query.SortDescending,
@@ -45,7 +45,7 @@ public sealed class TaskService : ITaskService
     {
         var (items, total) = await _uow.Tasks.GetPagedTasksAsync(
             query.Search,
-            query.Status.HasValue   ? (TaskStatus?)query.Status.Value     : null,
+            query.Status.HasValue ? (TaskStatus?)query.Status.Value : null,
             query.Priority.HasValue ? (TaskPriority?)query.Priority.Value : null,
             userId,
             query.SortBy, query.SortDescending,
@@ -64,12 +64,12 @@ public sealed class TaskService : ITaskService
     public async Task<TaskDto> CreateAsync(Guid projectId, CreateTaskDto dto, Guid createdByUserId, IEnumerable<string> roles, CancellationToken ct = default)
     {
         await EnsureProjectAccessAsync(projectId, createdByUserId, roles, ct);
-        
+
         // Load project WITH TRACKING for authorization check (ensures Members are loaded)
         var project = await _uow.Projects.GetByIdAsync(projectId, ct);
         if (project == null)
             throw new NotFoundException(nameof(Project), projectId);
-        
+
         // Load members explicitly for authorization check
         await _context.Entry(project)
             .Collection(p => p.Members)
@@ -78,7 +78,7 @@ public sealed class TaskService : ITaskService
             .LoadAsync(ct);
 
         // Check if user can create tasks
-        AuthorizationHelper.EnsureCanCreateTask(roles, project, createdByUserId);
+        AuthorizationHelper.EnsureCanManageTasks(roles, project, createdByUserId);
 
         var task = dto.ToEntity(projectId);
         task.Id = Guid.NewGuid();
@@ -92,7 +92,7 @@ public sealed class TaskService : ITaskService
             null, null, task.Title, ct);
 
         await _uow.SaveChangesAsync(ct);
-        
+
         // Invalidate dashboard cache after creating task
         await _uow.Tasks.InvalidateCacheAsync(ct);
 
@@ -126,10 +126,10 @@ public sealed class TaskService : ITaskService
             await LogActivityAsync(task, requestingUserId, "PriorityChanged",
                 "Priority", task.Priority.ToString(), ((TaskPriority)dto.Priority).ToString(), ct);
 
-        task.Title       = dto.Title.Trim();
+        task.Title = dto.Title.Trim();
         task.Description = dto.Description.Trim();
-        task.Priority    = (TaskPriority)dto.Priority;
-        task.DueDate     = dto.DueDate;
+        task.Priority = (TaskPriority)dto.Priority;
+        task.DueDate = dto.DueDate;
         task.AssignedToUserId = dto.AssignedToUserId;
         if (dto.Status.HasValue && Enum.IsDefined(typeof(TaskStatus), dto.Status.Value))
             task.Status = (TaskStatus)dto.Status.Value;
@@ -143,7 +143,7 @@ public sealed class TaskService : ITaskService
         try
         {
             await _uow.SaveChangesAsync(ct);
-            
+
             // Invalidate dashboard cache after update
             await _uow.Tasks.InvalidateCacheAsync(ct);
         }
@@ -169,14 +169,29 @@ public sealed class TaskService : ITaskService
         if (task == null || task.ProjectId != projectId)
             throw new NotFoundException(nameof(TaskItem), taskId);
 
+        var projectMember = await _uow.ProjectMembers.GetMembershipAsync(projectId, requestingUserId, ct);
+
+        if (projectMember == null)
+            throw new NotFoundException(nameof(ProjectMember), projectId);
+
         var roleList = roles.ToList();
-        if (!roleList.Contains(UserRole.Admin.ToString()) && task.AssignedToUserId != requestingUserId)
-            throw new ForbiddenException("You can only update tasks assigned to you.");
+        var isAdmin = roleList.Contains(UserRole.Admin.ToString());
+        var isProjectManager = projectMember.ProjectRole == ProjectRole.Manager;
+        var isAssignedUser = task.AssignedToUserId == requestingUserId;
+
+        //if (!roleList.Contains(UserRole.Admin.ToString()) && task.AssignedToUserId != requestingUserId)
+        //    throw new ForbiddenException("You can only update tasks assigned to you.");
+
+        if (!(isAdmin || isProjectManager || isAssignedUser))
+        {
+            throw new ForbiddenException(
+                "Only the Admin, Project Manager, or assigned user can update this task.");
+        }
 
         var oldStatus = task.Status;
         var newStatus = dto.Status;
 
-        if (oldStatus == newStatus) 
+        if (oldStatus == newStatus)
         {
             // Reload with details for DTO mapping
             var unchanged = await _uow.Tasks.GetByIdWithDetailsAsync(taskId, ct);
@@ -213,7 +228,7 @@ public sealed class TaskService : ITaskService
         try
         {
             await _uow.SaveChangesAsync(ct);
-            
+
             // Invalidate dashboard cache after assignment change
             await _uow.Tasks.InvalidateCacheAsync(ct);
         }
@@ -239,20 +254,20 @@ public sealed class TaskService : ITaskService
         Guid requestingUserId, IEnumerable<string> roles, CancellationToken ct = default)
     {
         var task = await EnsureTaskProjectAccessAsync(projectId, taskId, requestingUserId, roles, ct);
-        
+
         // Load project for authorization check
         var project = await _uow.Projects.GetByIdWithDetailsAsync(projectId, ct)
             ?? throw new NotFoundException(nameof(Project), projectId);
 
         // Check if user can delete this task
-        AuthorizationHelper.EnsureCanDeleteTask(roles, project, requestingUserId);
+        AuthorizationHelper.EnsureCanManageTasks(roles, project, requestingUserId);
 
         _uow.Tasks.SoftDelete(task, requestingUserId.ToString());
         await _uow.SaveChangesAsync(ct);
-        
+
         // Invalidate dashboard cache after deletion
         await _uow.Tasks.InvalidateCacheAsync(ct);
-        
+
         _logger.LogInformation("Task deleted: {Id} by user {UserId}", taskId, requestingUserId);
     }
 
@@ -317,13 +332,13 @@ public sealed class TaskService : ITaskService
     {
         var log = new TaskActivityLog
         {
-            Id                = Guid.NewGuid(),
-            TaskId            = task.Id,
+            Id = Guid.NewGuid(),
+            TaskId = task.Id,
             PerformedByUserId = userId,
-            Action            = action,
-            PropertyName      = property,
-            OldValue          = oldValue,
-            NewValue          = newValue
+            Action = action,
+            PropertyName = property,
+            OldValue = oldValue,
+            NewValue = newValue
         };
         task.ActivityLogs.Add(log);
         return Task.CompletedTask;

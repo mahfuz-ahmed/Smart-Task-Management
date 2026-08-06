@@ -1,6 +1,6 @@
 using SmartTaskManagement.Application.DTOs.Dashboard;
 
-namespace SmartTaskManagement.Application.Interfaces;
+namespace SmartTaskManagement.Application.Interfaces.ExternalServices;
 
 public interface IDashboardService
 {

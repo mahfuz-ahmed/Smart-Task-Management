@@ -1,10 +1,9 @@
-
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.DTOs.Auth;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.ExternalServices;
 using System.Security.Claims;
 
 [ApiController]
@@ -66,15 +65,15 @@ public sealed class AuthController : ControllerBase
 
     [HttpPost("refresh-token")]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), 200)]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto dto,CancellationToken ct)
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto dto, CancellationToken ct)
     {
-        var (isValid, errorResponse) =await ValidateRequestAsync(dto, _refreshTokenVal, ct);
+        var (isValid, errorResponse) = await ValidateRequestAsync(dto, _refreshTokenVal, ct);
 
-        if (!isValid)return errorResponse!;
+        if (!isValid) return errorResponse!;
 
         var result = await _auth.RefreshTokenAsync(dto, ct);
 
-        return Ok(ApiResponse<AuthResponseDto>.Ok(result,"Token refreshed."));
+        return Ok(ApiResponse<AuthResponseDto>.Ok(result, "Token refreshed."));
     }
 
     private async Task<(bool IsValid, IActionResult? Response)> ValidateRequestAsync<T>(

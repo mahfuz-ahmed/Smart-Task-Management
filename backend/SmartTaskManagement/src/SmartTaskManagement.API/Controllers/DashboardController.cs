@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.DTOs.Dashboard;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.ExternalServices;
 
 namespace SmartTaskManagement.API.Controllers;
 
@@ -14,6 +14,7 @@ namespace SmartTaskManagement.API.Controllers;
 public sealed class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboard;
+
     public DashboardController(IDashboardService dashboard) => _dashboard = dashboard;
 
     [HttpGet]

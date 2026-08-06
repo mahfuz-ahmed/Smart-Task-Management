@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.Common.Extensions;
 using SmartTaskManagement.Application.DTOs.AI;
-using SmartTaskManagement.Application.Interfaces;
+using SmartTaskManagement.Application.Interfaces.ExternalServices;
 
 namespace SmartTaskManagement.API.Controllers;
 
