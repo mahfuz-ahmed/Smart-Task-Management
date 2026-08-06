@@ -28,19 +28,19 @@ jobs:
         working-directory: frontend
         run: npm run build -- --configuration production
 
-      # ---------- .NET ----------
+      # ---------- .NET 8 (SmarterASP.NET Native Support) ----------
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '8.0.x'
 
       - name: Restore
         working-directory: backend/SmartTaskManagement
         run: dotnet restore SmartTaskManagement.slnx
 
-      - name: Publish API (Self-Contained 32-bit x86 for SmarterASP.NET)
+      - name: Publish API (.NET 8 AnyCPU for SmarterASP.NET)
         working-directory: backend/SmartTaskManagement
-        run: dotnet publish src/SmartTaskManagement.API/SmartTaskManagement.API.csproj --configuration Release --runtime win-x86 --self-contained true --output ../../publish
+        run: dotnet publish src/SmartTaskManagement.API/SmartTaskManagement.API.csproj --configuration Release --output ../../publish
 
       # ---------- Copy Angular Assets to wwwroot ----------
       - name: Copy Angular Build to wwwroot
@@ -65,3 +65,4 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           local-dir: ./publish/
           server-dir: /taskmangement/
+          dangerous-clean-slate: true
