@@ -38,9 +38,9 @@ jobs:
         working-directory: backend/SmartTaskManagement
         run: dotnet restore SmartTaskManagement.slnx
 
-      - name: Publish API (Self-Contained for SmarterASP.NET)
+      - name: Publish API (Self-Contained 32-bit x86 for SmarterASP.NET)
         working-directory: backend/SmartTaskManagement
-        run: dotnet publish src/SmartTaskManagement.API/SmartTaskManagement.API.csproj --configuration Release --runtime win-x64 --self-contained true --output ../../publish
+        run: dotnet publish src/SmartTaskManagement.API/SmartTaskManagement.API.csproj --configuration Release --runtime win-x86 --self-contained true --output ../../publish
 
       # ---------- Copy Angular Assets to wwwroot ----------
       - name: Copy Angular Build to wwwroot
