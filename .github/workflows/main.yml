@@ -70,5 +70,4 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           local-dir: ./deploy/
-          server-dir: /
-          dangerous-clean-slate: true
+          server-dir: /taskmangement/
