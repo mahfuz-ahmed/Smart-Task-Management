@@ -98,7 +98,7 @@ public static class DependencyInjection
         services.AddScoped<IUserService, UserService>();
 
         // ── 5. Typed HttpClient (AI Service) ─────────────────────────────────
-        services.AddHttpClient<IAiService, GitHubModelsAiService>(client =>
+        services.AddHttpClient<IAiService, GroqAiService>(client =>
         {
             client.Timeout = TimeSpan.FromSeconds(30);
         });
