@@ -28,7 +28,7 @@ jobs:
         working-directory: frontend
         run: npm run build -- --configuration production
 
-      # ---------- .NET 8 (SmarterASP.NET Native Support) ----------
+      # ---------- .NET 8 ----------
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -38,24 +38,29 @@ jobs:
         working-directory: backend/SmartTaskManagement
         run: dotnet restore SmartTaskManagement.slnx
 
-      - name: Publish API (.NET 8 AnyCPU for SmarterASP.NET)
+      - name: Publish API (.NET 8 framework-dependent)
         working-directory: backend/SmartTaskManagement
-        run: dotnet publish src/SmartTaskManagement.API/SmartTaskManagement.API.csproj --configuration Release --output ../../publish
+        run: dotnet publish src/SmartTaskManagement.API/SmartTaskManagement.API.csproj --configuration Release --output ../../deploy
 
-      # ---------- Copy Angular Assets to wwwroot ----------
-      - name: Copy Angular Build to wwwroot
+      # ---------- Copy Angular Assets to deploy/wwwroot ----------
+      - name: Prepare wwwroot and logs folders
         shell: powershell
         run: |
-          New-Item -ItemType Directory -Force -Path "./publish/wwwroot"
-          New-Item -ItemType Directory -Force -Path "./publish/logs"
-          Remove-Item -Recurse -Force "./publish/wwwroot/*" -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force -Path "./deploy/wwwroot"
+          New-Item -ItemType Directory -Force -Path "./deploy/logs"
+          Remove-Item -Recurse -Force "./deploy/wwwroot/*" -ErrorAction SilentlyContinue
           if (Test-Path "./frontend/dist/frontend/browser") {
-            Copy-Item -Path "./frontend/dist/frontend/browser/*" -Destination "./publish/wwwroot/" -Recurse -Force
+            Write-Host "Copying from frontend/dist/frontend/browser"
+            Copy-Item -Path "./frontend/dist/frontend/browser/*" -Destination "./deploy/wwwroot/" -Recurse -Force
           } elseif (Test-Path "./frontend/dist/browser") {
-            Copy-Item -Path "./frontend/dist/browser/*" -Destination "./publish/wwwroot/" -Recurse -Force
+            Write-Host "Copying from frontend/dist/browser"
+            Copy-Item -Path "./frontend/dist/browser/*" -Destination "./deploy/wwwroot/" -Recurse -Force
           } else {
-            Copy-Item -Path "./frontend/dist/*" -Destination "./publish/wwwroot/" -Recurse -Force
+            Write-Host "Copying from frontend/dist"
+            Copy-Item -Path "./frontend/dist/*" -Destination "./deploy/wwwroot/" -Recurse -Force
           }
+          Write-Host "wwwroot index.html present: $(Test-Path './deploy/wwwroot/index.html')"
+          Write-Host "web.config present: $(Test-Path './deploy/web.config')"
 
       # ---------- Deploy via FTP ----------
       - name: Deploy to SmarterASP.NET via FTP
@@ -64,6 +69,6 @@ jobs:
           server: ${{ secrets.SERVER_COMPUTER_NAME }}
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
-          local-dir: ./publish/
+          local-dir: ./deploy/
           server-dir: /
           dangerous-clean-slate: true
