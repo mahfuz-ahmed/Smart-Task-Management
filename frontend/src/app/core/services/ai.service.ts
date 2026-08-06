@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { ApiResponse } from '../models/auth.models';
+import { environment } from '../../../environments/environment';
 
 export interface EnhanceRequest {
   description: string;
@@ -16,7 +17,7 @@ export interface EnhanceResponse {
 @Injectable({ providedIn: 'root' })
 export class AiService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7125/api/ai';
+  private apiUrl = `${environment.apiUrl}/ai`;
 
   /**
    * Calls backend AI endpoint to improve task description.

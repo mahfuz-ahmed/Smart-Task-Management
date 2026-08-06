@@ -6,11 +6,12 @@ import {
   TaskItem, CreateTaskRequest, UpdateTaskRequest,
   AddCommentRequest, PagedResult, TaskQueryParams
 } from '../models/app.models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7125/api';
+  private apiUrl = environment.apiUrl;
 
   getTasks(projectId: string, params?: TaskQueryParams): Observable<ApiResponse<PagedResult<TaskItem>>> {
     let httpParams = new HttpParams();

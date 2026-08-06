@@ -53,7 +53,7 @@ try
     // ── CORS ──────────────────────────────────────────────────────────────────
     builder.Services.AddCors(options =>
         options.AddPolicy("AllowAngular", policy =>
-            policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
+            policy.SetIsOriginAllowed(_ => true)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials()));   // Required for SignalR
@@ -111,13 +111,16 @@ try
     app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseSerilogRequestLogging();
 
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+
     if (app.Environment.IsDevelopment())
     {
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Task Management API v1");
-            c.RoutePrefix = string.Empty;
+            c.RoutePrefix = "swagger";
         });
     }
 
@@ -130,6 +133,7 @@ try
 
     app.MapControllers();
     app.MapHealthChecks("/health");
+    app.MapFallbackToFile("index.html");
 
     Log.Information("Smart Task Management API starting on https://localhost:7125");
     await app.RunAsync();

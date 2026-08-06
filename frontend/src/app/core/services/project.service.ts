@@ -11,11 +11,12 @@ import {
   ProjectMember,
   ProjectQueryParams,
 } from '../models/app.models';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   private http = inject(HttpClient);
-  private apiUrl = 'https://localhost:7125/api/projects';
+  private apiUrl = `${environment.apiUrl}/projects`;
 
   getProjects(params?: ProjectQueryParams): Observable<ApiResponse<PagedResult<Project>>> {
     let httpParams = new HttpParams();

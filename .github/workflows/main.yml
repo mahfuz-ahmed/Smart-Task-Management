@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - main
 
 jobs:
   build-and-deploy:
@@ -37,21 +38,23 @@ jobs:
         working-directory: backend/SmartTaskManagement
         run: dotnet restore SmartTaskManagement.slnx
 
-      - name: Build
+      - name: Publish API (Self-Contained for SmarterASP.NET)
         working-directory: backend/SmartTaskManagement
-        run: dotnet build SmartTaskManagement.slnx --configuration Release --no-restore
+        run: dotnet publish src/SmartTaskManagement.API/SmartTaskManagement.API.csproj --configuration Release --runtime win-x64 --self-contained true --output ../../publish
 
-      - name: Publish API
-        working-directory: backend/SmartTaskManagement
-        run: dotnet publish src/SmartTaskManagement.API/SmartTaskManagement.API.csproj --configuration Release --no-build --output ../../publish
-
-      # ---------- Copy Angular ----------
-      - name: Copy Angular Build
+      # ---------- Copy Angular Assets to wwwroot ----------
+      - name: Copy Angular Build to wwwroot
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "./publish/wwwroot"
           Remove-Item -Recurse -Force "./publish/wwwroot/*" -ErrorAction SilentlyContinue
-          Copy-Item -Path "./frontend/dist/*" -Destination "./publish/wwwroot/" -Recurse -Force
+          if (Test-Path "./frontend/dist/frontend/browser") {
+            Copy-Item -Path "./frontend/dist/frontend/browser/*" -Destination "./publish/wwwroot/" -Recurse -Force
+          } elseif (Test-Path "./frontend/dist/browser") {
+            Copy-Item -Path "./frontend/dist/browser/*" -Destination "./publish/wwwroot/" -Recurse -Force
+          } else {
+            Copy-Item -Path "./frontend/dist/*" -Destination "./publish/wwwroot/" -Recurse -Force
+          }
 
       # ---------- Deploy via FTP ----------
       - name: Deploy to SmarterASP.NET via FTP
@@ -61,4 +64,4 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           local-dir: ./publish/
-          server-dir: /taskmangement/  # Eta change kore /taskmangement/ kore din
+          server-dir: /taskmangement/
