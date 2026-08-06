@@ -47,6 +47,7 @@ jobs:
         shell: powershell
         run: |
           New-Item -ItemType Directory -Force -Path "./publish/wwwroot"
+          New-Item -ItemType Directory -Force -Path "./publish/logs"
           Remove-Item -Recurse -Force "./publish/wwwroot/*" -ErrorAction SilentlyContinue
           if (Test-Path "./frontend/dist/frontend/browser") {
             Copy-Item -Path "./frontend/dist/frontend/browser/*" -Destination "./publish/wwwroot/" -Recurse -Force
