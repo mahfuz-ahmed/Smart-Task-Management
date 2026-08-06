@@ -64,5 +64,5 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           local-dir: ./publish/
-          server-dir: /taskmangement/
+          server-dir: /
           dangerous-clean-slate: true
