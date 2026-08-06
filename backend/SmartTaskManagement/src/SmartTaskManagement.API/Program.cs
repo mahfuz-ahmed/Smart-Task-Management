@@ -106,7 +106,14 @@ try
     var app = builder.Build();
     // ─────────────────────────────────────────────────────────────────────────
 
-    await DatabaseSeeder.SeedAsync(app.Services);
+    try
+    {
+        await DatabaseSeeder.SeedAsync(app.Services);
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Database seeding/migration failed during startup. App continuing...");
+    }
 
     app.UseMiddleware<GlobalExceptionMiddleware>();
     app.UseSerilogRequestLogging();
@@ -114,17 +121,13 @@ try
     app.UseDefaultFiles();
     app.UseStaticFiles();
 
-    if (app.Environment.IsDevelopment())
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
-        app.UseSwagger();
-        app.UseSwaggerUI(c =>
-        {
-            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Task Management API v1");
-            c.RoutePrefix = "swagger";
-        });
-    }
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Smart Task Management API v1");
+        c.RoutePrefix = "swagger";
+    });
 
-    app.UseHttpsRedirection();
     app.UseIpRateLimiting();
     app.UseCors("AllowAngular");
 
