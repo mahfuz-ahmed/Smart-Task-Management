@@ -2,9 +2,11 @@ using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.DTOs.Tasks;
 using SmartTaskManagement.Application.Interfaces.Services;
+
 
 namespace SmartTaskManagement.API.Controllers;
 
@@ -12,17 +14,22 @@ namespace SmartTaskManagement.API.Controllers;
 [Route("api/projects/{projectId:guid}/tasks")]
 [Authorize]
 [Produces("application/json")]
-public sealed class TasksController : ControllerBase
+public sealed class TasksController : BaseApiController
 {
     private readonly ITaskService _tasks;
     private readonly IValidator<CreateTaskDto> _createVal;
     private readonly IValidator<UpdateTaskDto> _updateVal;
 
-    public TasksController(ITaskService tasks,
-        IValidator<CreateTaskDto> createVal, IValidator<UpdateTaskDto> updateVal)
-    {
-        _tasks = tasks; _createVal = createVal; _updateVal = updateVal;
-    }
+
+
+public TasksController(ITaskService tasks,
+    IValidator<CreateTaskDto> createVal, IValidator<UpdateTaskDto> updateVal)
+{
+    _tasks = tasks;
+    _createVal = createVal;
+    _updateVal = updateVal;
+}
+
 
     [HttpGet]
     public async Task<IActionResult> GetAll(Guid projectId, [FromQuery] TaskQueryDto query, CancellationToken ct)
@@ -49,8 +56,8 @@ public sealed class TasksController : ControllerBase
     [Authorize(Roles = "Admin,ProjectManager")]
     public async Task<IActionResult> Create(Guid projectId, [FromBody] CreateTaskDto dto, CancellationToken ct)
     {
-        var v = await _createVal.ValidateAsync(dto, ct);
-        if (!v.IsValid) return BadRequest(ApiResponse<object>.Fail(v.Errors.Select(e => e.ErrorMessage)));
+        var (isValid, validationResult) = await ValidateRequestAsync(dto, _createVal, ct);
+        if (!isValid) return validationResult!;
 
         var result = await _tasks.CreateAsync(projectId, dto, GetUserId(), GetRoles(), ct);
         return CreatedAtAction(nameof(GetById), new { projectId, taskId = result.Id },
@@ -60,8 +67,8 @@ public sealed class TasksController : ControllerBase
     [HttpPut("{taskId:guid}")]
     public async Task<IActionResult> Update(Guid projectId, Guid taskId, [FromBody] UpdateTaskDto dto, CancellationToken ct)
     {
-        var v = await _updateVal.ValidateAsync(dto, ct);
-        if (!v.IsValid) return BadRequest(ApiResponse<object>.Fail(v.Errors.Select(e => e.ErrorMessage)));
+        var (isValid, validationResult) = await ValidateRequestAsync(dto, _updateVal, ct);
+        if (!isValid) return validationResult!;
 
         var result = await _tasks.UpdateAsync(projectId, taskId, dto, GetUserId(), GetRoles(), ct);
         return Ok(ApiResponse<TaskDto>.Ok(result, "Task updated."));

@@ -13,6 +13,6 @@ public sealed class CreateProjectValidator : AbstractValidator<CreateProjectDto>
 
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage("Description is required.")
-            .MaximumLength(500).WithMessage("Description must not exceed 500 characters.");
+            .MaximumLength(1000).WithMessage("Description must not exceed 500 characters.");
     }
 }

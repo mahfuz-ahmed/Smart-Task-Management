@@ -1,4 +1,6 @@
+using System;
 using System.Text.Json;
+using System.Linq;
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.Exceptions;
 
@@ -51,32 +53,26 @@ public sealed class GlobalExceptionMiddleware
 
         context.Response.ContentType = "application/json";
 
-        // Tuple to hold Status Code, Message, and Optional Errors Array
-        var (status, message, errors) = ex switch
+        // Tuple to hold Status Code, Message, ErrorCode, and Optional Errors Array
+        var (status, message, errorCode, errors) = ex switch
         {
-            NotFoundException e => (e.StatusCode, e.Message, null),
-            ForbiddenException e => (e.StatusCode, e.Message, null),
-            ConflictException e => (e.StatusCode, e.Message, null),
-            BusinessException e => (e.StatusCode, e.Message, null),
-            UnauthorizedException e => (e.StatusCode, e.Message, null),
-            AppException e => (e.StatusCode, e.Message, null),
-
-            // Optional: If you are using FluentValidation and throwing ValidationException
-            FluentValidation.ValidationException e =>
-                (400, "Validation failed", e.Errors.Select(x => x.ErrorMessage)),
-
-            _ => (
-                500,
-                _env.IsDevelopment() ? ex.Message : "An unexpected error occurred.",
-                _env.IsDevelopment() ? new[] { ex.StackTrace ?? string.Empty } : null
-            )
+            NotFoundException e => (e.StatusCode, e.Message, e.ErrorCode, null),
+            ForbiddenException e => (e.StatusCode, e.Message, e.ErrorCode, null),
+            ConflictException e => (e.StatusCode, e.Message, e.ErrorCode, null),
+            BusinessException e => (e.StatusCode, e.Message, e.ErrorCode, null),
+            UnauthorizedException e => (e.StatusCode, e.Message, e.ErrorCode, null),
+            AppException e => (e.StatusCode, e.UserMessage ?? e.Message, e.ErrorCode, null),
+            FluentValidation.ValidationException e => (400, "Validation failed", "VALIDATION_ERROR", e.Errors.Select(x => x.ErrorMessage)),
+            _ => (500, _env.IsDevelopment() ? ex.Message : "An unexpected error occurred.", "INTERNAL_ERROR", null)
         };
 
         context.Response.StatusCode = status;
 
+        // Generate a formatted ErrorId for this error instance
+        var errorId = $"ERR-{DateTime.UtcNow:yyyyMMdd-HHmmss-fff}-{Guid.NewGuid().ToString("N").Substring(0,8).ToUpper()}";
         var response = errors != null && errors.Any()
-            ? ApiResponse.Fail(message, errors)
-            : ApiResponse.Fail(message);
+            ? ApiResponse.Fail(message, errors, errorId, errorCode)
+            : ApiResponse.Fail(message, null, errorId, errorCode);
 
         var body = JsonSerializer.Serialize(response, _jsonOptions);
 

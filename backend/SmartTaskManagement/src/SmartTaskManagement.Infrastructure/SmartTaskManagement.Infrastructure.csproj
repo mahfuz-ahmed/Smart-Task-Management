@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<!--<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -29,5 +29,47 @@
   <ItemGroup>
     <Folder Include="ExternalServices\" />
   </ItemGroup>
+
+</Project>-->
+
+
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
+
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
+
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
+
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
+
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.10">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+
+		<PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+
+		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+
+		<PackageReference Include="System.Security.Cryptography.Xml" Version="10.0.10" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\SmartTaskManagement.Application\SmartTaskManagement.Application.csproj" />
+		<ProjectReference Include="..\SmartTaskManagement.Domain\SmartTaskManagement.Domain.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="ExternalServices\" />
+	</ItemGroup>
 
 </Project>

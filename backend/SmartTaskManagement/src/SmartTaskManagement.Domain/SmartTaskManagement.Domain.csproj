@@ -1,12 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <!-- Domain layer has ZERO external package dependencies.
-         Pure C# — no EF Core, no Identity, no application framework.
-         This is the core tenet of Clean Architecture. -->
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<!--
+      Domain layer has zero external package dependencies.
+      Pure C# — no EF Core, Identity, or application framework.
+      This keeps the domain independent and follows Clean Architecture.
+    -->
+	</PropertyGroup>
 
 </Project>

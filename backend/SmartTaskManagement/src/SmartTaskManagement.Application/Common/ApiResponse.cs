@@ -10,6 +10,8 @@ public sealed class ApiResponse<T>
     public T? Data { get; init; }
     public IReadOnlyList<string> Errors { get; init; } = Array.Empty<string>();
     public DateTime TimestampUtc { get; init; } = DateTime.UtcNow;
+    public string? ErrorId { get; init; }
+    public string? ErrorCode { get; init; }
 
     // ── Static Factory Methods ───────────────────────────────────────────────
 
@@ -19,24 +21,29 @@ public sealed class ApiResponse<T>
             Success = true,
             Message = message,
             Data = data,
-            Errors = Array.Empty<string>()
+            Errors = Array.Empty<string>(),
+            ErrorId = null,
+            ErrorCode = null
         };
 
-    public static ApiResponse<T> Fail(string message, IEnumerable<string>? errors = null) =>
+    public static ApiResponse<T> Fail(string message, IEnumerable<string>? errors = null, string? errorId = null, string? errorCode = null) =>
         new()
         {
             Success = false,
             Message = message,
-            // Fixed the ?? operator type mismatch error
-            Errors = errors is not null ? errors.ToList().AsReadOnly() : Array.Empty<string>()
+            Errors = errors is not null ? errors.ToList().AsReadOnly() : Array.Empty<string>(),
+            ErrorId = errorId,
+            ErrorCode = errorCode
         };
 
-    public static ApiResponse<T> Fail(IEnumerable<string> errors) =>
+    public static ApiResponse<T> Fail(IEnumerable<string> errors, string? errorId = null, string? errorCode = null) =>
         new()
         {
             Success = false,
             Message = "Validation failed",
-            Errors = errors.ToList().AsReadOnly()
+            Errors = errors.ToList().AsReadOnly(),
+            ErrorId = errorId,
+            ErrorCode = errorCode
         };
 }
 
@@ -49,6 +56,8 @@ public sealed class ApiResponse
     public string Message { get; init; } = string.Empty;
     public IReadOnlyList<string> Errors { get; init; } = Array.Empty<string>();
     public DateTime TimestampUtc { get; init; } = DateTime.UtcNow;
+    public string? ErrorId { get; init; }
+    public string? ErrorCode { get; init; }
 
     // ── Static Factory Methods ───────────────────────────────────────────────
 
@@ -57,23 +66,28 @@ public sealed class ApiResponse
         {
             Success = true,
             Message = message,
-            Errors = Array.Empty<string>()
+            Errors = Array.Empty<string>(),
+            ErrorId = null,
+            ErrorCode = null
         };
 
-    public static ApiResponse Fail(string message, IEnumerable<string>? errors = null) =>
+    public static ApiResponse Fail(string message, IEnumerable<string>? errors = null, string? errorId = null, string? errorCode = null) =>
         new()
         {
             Success = false,
             Message = message,
-            // Fixed the ?? operator type mismatch error
-            Errors = errors is not null ? errors.ToList().AsReadOnly() : Array.Empty<string>()
+            Errors = errors is not null ? errors.ToList().AsReadOnly() : Array.Empty<string>(),
+            ErrorId = errorId,
+            ErrorCode = errorCode
         };
 
-    public static ApiResponse Fail(IEnumerable<string> errors) =>
+    public static ApiResponse Fail(IEnumerable<string> errors, string? errorId = null, string? errorCode = null) =>
         new()
         {
             Success = false,
             Message = "Validation failed",
-            Errors = errors.ToList().AsReadOnly()
+            Errors = errors.ToList().AsReadOnly(),
+            ErrorId = errorId,
+            ErrorCode = errorCode
         };
 }

@@ -13,7 +13,7 @@ public sealed class ProjectConfiguration
 
         b.Property(x => x.Name).IsRequired().HasMaxLength(100);
 
-        b.Property(x => x.Description).HasMaxLength(500);
+        b.Property(x => x.Description).HasMaxLength(1000);
 
         b.Property(x => x.Status).HasConversion<string>().HasMaxLength(30);
 

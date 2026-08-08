@@ -11,7 +11,7 @@ namespace SmartTaskManagement.API.Controllers;
 [Route("api/dashboard")]
 [Authorize]
 [Produces("application/json")]
-public sealed class DashboardController : ControllerBase
+public sealed class DashboardController : BaseApiController
 {
     private readonly IDashboardService _dashboard;
 

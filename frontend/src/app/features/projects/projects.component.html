@@ -6,7 +6,14 @@
       <p class="page-subtitle">Manage and track all your team projects</p>
     </div>
     <button class="btn btn-primary" (click)="openCreateModal()" id="create-project-btn">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+      >
         <line x1="12" y1="5" x2="12" y2="19" />
         <line x1="5" y1="12" x2="19" y2="12" />
       </svg>
@@ -16,252 +23,323 @@
 
   <!-- Filters -->
   <div class="filter-bar">
-    <div class="search-input-wrap" style="flex: 1; max-width: 320px;">
+    <div class="search-input-wrap" style="flex: 1; max-width: 320px">
       <span class="search-icon">🔍</span>
-      <input type="text" class="form-control" placeholder="Search projects..." id="project-search-input"
-        (input)="onSearch($event)" />
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search projects..."
+        id="project-search-input"
+        (input)="onSearch($event)"
+      />
     </div>
-    <select class="form-control" style="width: 160px;" (change)="onStatusFilter($event)" id="project-status-filter">
+    <select
+      class="form-control"
+      style="width: 160px"
+      (change)="onStatusFilter($event)"
+      id="project-status-filter"
+    >
       <option value="">All Status</option>
       @for (s of projectStatuses; track s.value) {
-      <option [value]="s.value">{{ s.label }}</option>
+        <option [value]="s.value">{{ s.label }}</option>
       }
     </select>
-    <select class="form-control" style="width: 160px;" (change)="onPriorityFilter($event)" id="project-priority-filter">
+    <select
+      class="form-control"
+      style="width: 160px"
+      (change)="onPriorityFilter($event)"
+      id="project-priority-filter"
+    >
       <option value="">All Priorities</option>
       @for (p of priorities; track p.value) {
-      <option [value]="p.value">{{ p.label }}</option>
+        <option [value]="p.value">{{ p.label }}</option>
       }
     </select>
   </div>
 
   <!-- Loading -->
   @if (loading()) {
-  <div class="page-loading">
-    <div class="spinner spinner-lg"></div>
-    <p>Loading projects...</p>
-  </div>
+    <div class="page-loading">
+      <div class="spinner spinner-lg"></div>
+      <p>Loading projects...</p>
+    </div>
   }
 
   <!-- Empty state -->
   @if (!loading() && filteredProjects().length === 0) {
-  <div class="empty-state">
-    <div class="empty-state-icon">📁</div>
-    <div class="empty-state-title">No projects found</div>
-    <div class="empty-state-desc">
-      {{
-      searchTerm() || statusFilter() || priorityFilter()
-      ? 'Try adjusting your filters'
-      : 'Create your first project to get started'
-      }}
+    <div class="empty-state">
+      <div class="empty-state-icon">📁</div>
+      <div class="empty-state-title">No projects found</div>
+      <div class="empty-state-desc">
+        {{
+          searchTerm() || statusFilter() || priorityFilter()
+            ? 'Try adjusting your filters'
+            : 'Create your first project to get started'
+        }}
+      </div>
+      @if (!searchTerm() && !statusFilter() && !priorityFilter()) {
+        <button class="btn btn-primary" style="margin-top: 20px" (click)="openCreateModal()">
+          Create Project
+        </button>
+      }
     </div>
-    @if (!searchTerm() && !statusFilter() && !priorityFilter()) {
-    <button class="btn btn-primary" style="margin-top: 20px;" (click)="openCreateModal()">
-      Create Project
-    </button>
-    }
-  </div>
   }
 
   <!-- Projects Grid -->
   @if (!loading()) {
-  <div class="projects-grid">
-    @for (project of filteredProjects(); track project.id) {
-    <div class="project-card">
-      <!-- Card top accent -->
-      <div class="project-card-accent" [class]="'accent-' + getPriorityLabel(project.priority).toLowerCase()"></div>
+    <div class="projects-grid">
+      @for (project of filteredProjects(); track project.id) {
+        <div class="project-card">
+          <!-- Card top accent -->
+          <div
+            class="project-card-accent"
+            [class]="'accent-' + getPriorityLabel(project.priority).toLowerCase()"
+          ></div>
 
-      <div class="project-card-body">
-        <div class="project-card-header">
-          <div class="project-title-row">
-            <h3 class="project-name">{{ project.name }}</h3>
-            <div class="project-actions" style="position: relative;">
-              <button class="btn btn-ghost btn-icon btn-sm" (click)="toggleMenu(project.id)"
-                [id]="'project-menu-' + project.id">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="5" r="1" />
-                  <circle cx="12" cy="12" r="1" />
-                  <circle cx="12" cy="19" r="1" />
-                </svg>
-              </button>
-              @if (openMenuId() === project.id) {
-              <div class="dropdown-menu">
-                <a [routerLink]="['/projects', project.id]" class="dropdown-item">
-                  📋 View Tasks
-                </a>
-                @if (canManage(project)) {
-                <button class="dropdown-item" (click)="openEditModal(project)">
-                  ✏️ Edit
-                </button>
-                <div class="dropdown-divider"></div>
-                <button class="dropdown-item danger" (click)="confirmDelete(project)">
-                  🗑️ Delete
-                </button>
+          <div class="project-card-body">
+            <div class="project-card-header">
+              <div class="project-title-row">
+                <h3 class="project-name">{{ project.name }}</h3>
+                <div class="project-actions" style="position: relative">
+                  <button
+                    class="btn btn-ghost btn-icon btn-sm"
+                    (click)="toggleMenu(project.id)"
+                    [id]="'project-menu-' + project.id"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <circle cx="12" cy="5" r="1" />
+                      <circle cx="12" cy="12" r="1" />
+                      <circle cx="12" cy="19" r="1" />
+                    </svg>
+                  </button>
+                  @if (openMenuId() === project.id) {
+                    <div class="dropdown-menu">
+                      <a [routerLink]="['/projects', project.id]" class="dropdown-item">
+                        📋 View Tasks
+                      </a>
+                      @if (canManage(project)) {
+                        <button class="dropdown-item" (click)="openEditModal(project)">
+                          ✏️ Edit
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item danger" (click)="confirmDelete(project)">
+                          🗑️ Delete
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+              <p class="project-desc">{{ project.description || 'No description provided' }}</p>
+            </div>
+
+            <!-- Status & Priority badges -->
+            <div class="flex gap-2 flex-wrap" style="margin-bottom: 16px">
+              <span class="badge" [class]="getStatusBadgeClass(project.status)">{{
+                getStatusLabel(project.status)
+              }}</span>
+              <span class="badge" [class]="getPriorityBadgeClass(project.priority)">{{
+                getPriorityLabel(project.priority)
+              }}</span>
+            </div>
+
+            <!-- Progress -->
+            <div style="margin-bottom: 16px">
+              <div class="flex justify-between text-xs text-muted" style="margin-bottom: 6px">
+                <span>Progress</span>
+                <span>{{ getCompletionPercentage(project) }}%</span>
+              </div>
+              <div class="progress">
+                <div class="progress-bar" [style.width.%]="getCompletionPercentage(project)"></div>
+              </div>
+              <div class="flex justify-between text-xs text-muted" style="margin-top: 4px">
+                <span
+                  >{{ project.completedTasks ?? project.taskStats?.completed ?? 0 }} /
+                  {{ project.totalTasks ?? project.taskStats?.total ?? 0 }} tasks</span
+                >
+                @if (project.endDate) {
+                  <span>Due {{ formatDate(project.endDate) }}</span>
                 }
               </div>
-              }
+            </div>
+
+            <!-- Members -->
+            <div class="project-members">
+              <div class="member-avatars">
+                @for (m of project.members?.slice(0, 4); track m.userId) {
+                  <div class="avatar avatar-sm" [title]="m.userFullName">
+                    {{ m.userFullName.charAt(0).toUpperCase() }}
+                  </div>
+                }
+                @if ((project.members?.length ?? 0) > 4) {
+                  <div class="avatar avatar-sm more-members">
+                    +{{ (project.members?.length ?? 0) - 4 }}
+                  </div>
+                }
+              </div>
+              <a
+                [routerLink]="['/projects', project.id]"
+                class="btn btn-ghost btn-sm"
+                [id]="'view-project-' + project.id"
+              >
+                Open →
+              </a>
             </div>
           </div>
-          <p class="project-desc">{{ project.description || 'No description provided' }}</p>
         </div>
+      }
+    </div>
 
-        <!-- Status & Priority badges -->
-        <div class="flex gap-2 flex-wrap" style="margin-bottom: 16px;">
-          <span class="badge" [class]="getStatusBadgeClass(project.status)">{{
-            getStatusLabel(project.status)
-            }}</span>
-          <span class="badge" [class]="getPriorityBadgeClass(project.priority)">{{
-            getPriorityLabel(project.priority)
-            }}</span>
+    @if (pagination()) {
+      <div
+        class="pagination-bar"
+        style="
+          margin-top: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        "
+      >
+        <div class="text-sm text-muted">
+          Showing {{ projects().length }} of {{ pagination()?.totalCount }} projects
         </div>
-
-        <!-- Progress -->
-        <div style="margin-bottom: 16px;">
-          <div class="flex justify-between text-xs text-muted" style="margin-bottom: 6px;">
-            <span>Progress</span>
-            <span>{{ getCompletionPercentage(project) }}%</span>
-          </div>
-          <div class="progress">
-            <div class="progress-bar" [style.width.%]="getCompletionPercentage(project)"></div>
-          </div>
-          <div class="flex justify-between text-xs text-muted" style="margin-top: 4px;">
-            <span>{{ project.completedTasks ?? project.taskStats?.completed ?? 0 }} /
-              {{ project.totalTasks ?? project.taskStats?.total ?? 0 }} tasks</span>
-            @if (project.endDate) {
-            <span>Due {{ formatDate(project.endDate) }}</span>
-            }
-          </div>
-        </div>
-
-        <!-- Members -->
-        <div class="project-members">
-          <div class="member-avatars">
-            @for (m of project.members?.slice(0, 4); track m.userId) {
-            <div class="avatar avatar-sm" [title]="m.userFullName">
-              {{ m.userFullName.charAt(0).toUpperCase() }}
-            </div>
-            }
-            @if ((project.members?.length ?? 0) > 4) {
-            <div class="avatar avatar-sm more-members">
-              +{{ (project.members?.length ?? 0) - 4 }}
-            </div>
-            }
-          </div>
-          <a [routerLink]="['/projects', project.id]" class="btn btn-ghost btn-sm" [id]="'view-project-' + project.id">
-            Open →
-          </a>
+        <div class="btn-group">
+          <button
+            class="btn btn-secondary btn-sm"
+            [disabled]="currentPage() <= 1"
+            (click)="changePage(currentPage() - 1)"
+          >
+            Previous
+          </button>
+          <button class="btn btn-secondary btn-sm" disabled>
+            Page {{ pagination()?.pageNumber }} of {{ pagination()?.totalPages }}
+          </button>
+          <button
+            class="btn btn-secondary btn-sm"
+            [disabled]="!pagination()?.hasNextPage"
+            (click)="changePage(currentPage() + 1)"
+          >
+            Next
+          </button>
         </div>
       </div>
-    </div>
     }
-  </div>
-
-  @if (pagination()) {
-  <div class="pagination-bar"
-    style="margin-top: 28px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-    <div class="text-sm text-muted">
-      Showing {{ projects().length }} of {{ pagination()?.totalCount }} projects
-    </div>
-    <div class="btn-group">
-      <button class="btn btn-secondary btn-sm" [disabled]="currentPage() <= 1" (click)="changePage(currentPage() - 1)">
-        Previous
-      </button>
-      <button class="btn btn-secondary btn-sm" disabled>
-        Page {{ pagination()?.pageNumber }} of {{ pagination()?.totalPages }}
-      </button>
-      <button class="btn btn-secondary btn-sm" [disabled]="!pagination()?.hasNextPage"
-        (click)="changePage(currentPage() + 1)">
-        Next
-      </button>
-    </div>
-  </div>
-  }
   }
 
   <!-- CREATE / EDIT MODAL -->
   @if (showModal()) {
-  <div class="modal-overlay" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()" id="project-modal">
-      <div class="modal-header">
-        <h2 class="modal-title">
-          {{ editingProject() ? 'Edit Project' : 'Create New Project' }}
-        </h2>
-        <button class="modal-close" (click)="closeModal()">×</button>
-      </div>
-
-      <form [formGroup]="projectForm" (ngSubmit)="onSubmit()" novalidate id="project-form">
-        <div class="form-group">
-          <label class="form-label" for="proj-name">Project Name *</label>
-          <input id="proj-name" type="text" class="form-control" [class.is-invalid]="isInvalid('name')"
-            formControlName="name" placeholder="Enter project name" maxlength="100" />
-          @if (isInvalid('name')) {
-          <span class="form-error">
-            @if (projectForm.get('name')?.errors?.['required']) {
-            Name is required
-            } @else if (projectForm.get('name')?.errors?.['minlength']) {
-            Name must be at least 3 characters
-            } @else if (projectForm.get('name')?.errors?.['maxlength']) {
-            Name must not exceed 100 characters
-            }
-          </span>
-          }
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()" id="project-modal">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            {{ editingProject() ? 'Edit Project' : 'Create New Project' }}
+          </h2>
+          <button class="modal-close" (click)="closeModal()">×</button>
         </div>
 
-        <div class="form-group" style="margin-top: 16px;">
-          <div class="flex justify-between items-center">
-            <label class="form-label" for="proj-desc">Description *</label>
-            <button type="button" class="btn btn-ghost btn-sm ai-enhance-btn" (click)="enhanceDescription()"
-              [disabled]="enhancing()" id="ai-enhance-project-btn" style="margin-bottom: 4px;">
-              @if (enhancing()) {
-              <span class="spinner spinner-sm"></span>
-              } @else {
-              🤖
-              }
-              AI Enhance
-            </button>
-          </div>
-          <div style="display: flex; justify-content: flex-end; margin-bottom: 4px;">
-            <span class="char-counter" [class.char-limit-warning]="projectForm.get('description')?.value?.length > 450">
-              {{ projectForm.get('description')?.value?.length || 0 }}/500
-            </span>
-          </div>
-          <textarea id="proj-desc" class="form-control" [class.is-invalid]="isInvalid('description')"
-            formControlName="description" placeholder="Describe the project goals and objectives" rows="3"
-            maxlength="500"></textarea>
-          @if (isInvalid('description')) {
-          <span class="form-error">
-            @if (projectForm.get('description')?.errors?.['required']) {
-            Description is required
-            } @else if (projectForm.get('description')?.errors?.['maxlength']) {
-            Description must not exceed 500 characters
-            }
-          </span>
-          }
-          @if (enhancing()) {
-          <div class="ai-status">✨ Enhancing your description with AI...</div>
-          }
-        </div>
-
-        <div class="modal-form-row">
+        <form [formGroup]="projectForm" (ngSubmit)="onSubmit()" novalidate id="project-form">
           <div class="form-group">
-            <label class="form-label" for="proj-status">Status</label>
-            <select id="proj-status" class="form-control" formControlName="status">
-              @for (s of projectStatuses; track s.value) {
-              <option [value]="s.value" [ngValue]="s.value">{{ s.label }}</option>
-              }
-            </select>
+            <label class="form-label" for="proj-name">Project Name *</label>
+            <input
+              id="proj-name"
+              type="text"
+              class="form-control"
+              [class.is-invalid]="isInvalid('name')"
+              formControlName="name"
+              placeholder="Enter project name"
+              maxlength="100"
+            />
+            @if (isInvalid('name')) {
+              <span class="form-error">
+                @if (projectForm.get('name')?.errors?.['required']) {
+                  Name is required
+                } @else if (projectForm.get('name')?.errors?.['minlength']) {
+                  Name must be at least 3 characters
+                } @else if (projectForm.get('name')?.errors?.['maxlength']) {
+                  Name must not exceed 100 characters
+                }
+              </span>
+            }
           </div>
-          <div class="form-group">
-            <label class="form-label" for="proj-priority">Priority</label>
-            <select id="proj-priority" class="form-control" formControlName="priority">
-              @for (p of priorities; track p.value) {
-              <option [value]="p.value" [ngValue]="p.value">{{ p.label }}</option>
-              }
-            </select>
-          </div>
-        </div>
 
-        <div class="modal-form-row">
+          <div class="form-group" style="margin-top: 16px">
+            <div class="flex justify-between items-center">
+              <label class="form-label" for="proj-desc">Description *</label>
+              <button
+                type="button"
+                class="btn btn-ghost btn-sm ai-enhance-btn"
+                (click)="enhanceDescription()"
+                [disabled]="enhancing()"
+                id="ai-enhance-project-btn"
+                style="margin-bottom: 4px"
+              >
+                @if (enhancing()) {
+                  <span class="spinner spinner-sm"></span>
+                } @else {
+                  🤖
+                }
+                AI Enhance
+              </button>
+            </div>
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 4px">
+              <span
+                class="char-counter"
+                [class.char-limit-warning]="projectForm.get('description')?.value?.length > 450"
+              >
+                {{ projectForm.get('description')?.value?.length || 0 }}/1000
+              </span>
+            </div>
+            <textarea
+              id="proj-desc"
+              class="form-control"
+              [class.is-invalid]="isInvalid('description')"
+              formControlName="description"
+              placeholder="Describe the project goals and objectives"
+              rows="3"
+              maxlength="1000"
+            ></textarea>
+            @if (isInvalid('description')) {
+              <span class="form-error">
+                @if (projectForm.get('description')?.errors?.['required']) {
+                  Description is required
+                } @else if (projectForm.get('description')?.errors?.['maxlength']) {
+                  Description must not exceed 1000 characters
+                }
+              </span>
+            }
+            @if (enhancing()) {
+              <div class="ai-status">✨ Enhancing your description with AI...</div>
+            }
+          </div>
+
+          <div class="modal-form-row">
+            <div class="form-group">
+              <label class="form-label" for="proj-status">Status</label>
+              <select id="proj-status" class="form-control" formControlName="status">
+                @for (s of projectStatuses; track s.value) {
+                  <option [value]="s.value" [ngValue]="s.value">{{ s.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="proj-priority">Priority</label>
+              <select id="proj-priority" class="form-control" formControlName="priority">
+                @for (p of priorities; track p.value) {
+                  <option [value]="p.value" [ngValue]="p.value">{{ p.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- <div class="modal-form-row">
           <div class="form-group">
             <label class="form-label" for="proj-start">Start Date</label>
             <input id="proj-start" type="date" class="form-control" formControlName="startDate" />
@@ -271,60 +349,111 @@
             <input id="proj-end" type="date" class="form-control"
               [class.is-invalid]="projectForm.errors?.['dateInvalid']" formControlName="endDate" />
           </div>
-        </div>
+        </div> -->
 
-        @if (projectForm.errors?.['dateInvalid']) {
-        <div class="form-error" style="margin-top: -8px; margin-bottom: 12px;">
-          End date must be after start date
-        </div>
-        }
+          <div class="modal-form-row">
+            <div class="form-group">
+              <label class="form-label" for="proj-start">Start Date</label>
+              <input
+                id="proj-start"
+                type="date"
+                class="form-control"
+                formControlName="startDate"
+                [class.is-invalid]="isInvalid('startDate') || projectForm.errors?.['dateInvalid']"
+              />
+              @if (isInvalid('startDate')) {
+                <div class="invalid-feedback">{{ getErrorMessage('startDate') }}</div>
+              }
+            </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="closeModal()">
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-primary" [disabled]="saving()" id="project-save-btn"
-            style="min-width: 140px; min-height: 42px;">
-            @if (saving()) {
-            <span class="spinner spinner-sm"></span>
-            <span style="color: #ffffff; font-weight: 600;">Saving...</span>
-            } @else {
-            <span style="color: #ffffff; font-weight: 600;">{{
-              editingProject() ? 'Update Project' : 'Create Project'
-              }}</span>
-            }
-          </button>
-        </div>
-      </form>
+            <div class="form-group">
+              <label class="form-label" for="proj-end">End Date</label>
+              <input
+                id="proj-end"
+                type="date"
+                class="form-control"
+                [class.is-invalid]="isInvalid('endDate') || projectForm.errors?.['dateInvalid']"
+                formControlName="endDate"
+              />
+              @if (isInvalid('endDate')) {
+                <div class="invalid-feedback">{{ getErrorMessage('endDate') }}</div>
+              } @else if (
+                projectForm.errors?.['dateInvalid'] &&
+                (projectForm.get('endDate')?.touched || projectForm.get('endDate')?.dirty)
+              ) {
+                <div class="invalid-feedback">
+                  End Date must be greater than or equal to Start Date
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- @if (projectForm.errors?.['dateInvalid']) {
+            <div class="form-error" style="margin-top: -8px; margin-bottom: 12px">
+              End date must be after start date
+            </div>
+          } -->
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancel</button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="saving()"
+              id="project-save-btn"
+              style="min-width: 140px; min-height: 42px"
+            >
+              @if (saving()) {
+                <span class="spinner spinner-sm"></span>
+                <span style="color: #ffffff; font-weight: 600">Saving...</span>
+              } @else {
+                <span style="color: #ffffff; font-weight: 600">{{
+                  editingProject() ? 'Update Project' : 'Create Project'
+                }}</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
   }
 
   <!-- DELETE CONFIRM MODAL -->
   @if (deleteTarget()) {
-  <div class="modal-overlay" (click)="deleteTarget.set(null)">
-    <div class="modal" (click)="$event.stopPropagation()" style="max-width: 400px;" id="delete-project-modal">
-      <div class="modal-header">
-        <h2 class="modal-title">Delete Project</h2>
-        <button class="modal-close" (click)="deleteTarget.set(null)">×</button>
-      </div>
-      <p style="color: var(--text-secondary); margin-bottom: 8px;">
-        Are you sure you want to delete <strong>{{ deleteTarget()!.name }}</strong>?
-      </p>
-      <p class="text-xs text-muted">
-        This action cannot be undone. All tasks in this project will be permanently deleted.
-      </p>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="deleteTarget.set(null)">Cancel</button>
-        <button class="btn btn-danger" (click)="onDelete()" [disabled]="saving()" id="confirm-delete-project-btn">
-          @if (saving()) {
-          <span class="spinner spinner-sm"></span>
-          } @else {
-          🗑️ Delete
-          }
-        </button>
+    <div class="modal-overlay" (click)="deleteTarget.set(null)">
+      <div
+        class="modal"
+        (click)="$event.stopPropagation()"
+        style="max-width: 400px"
+        id="delete-project-modal"
+      >
+        <div class="modal-header">
+          <h2 class="modal-title">Delete Project</h2>
+          <button class="modal-close" (click)="deleteTarget.set(null)">×</button>
+        </div>
+        <p style="color: var(--text-secondary); margin-bottom: 8px">
+          Are you sure you want to delete <strong>{{ deleteTarget()!.name }}</strong
+          >?
+        </p>
+        <p class="text-xs text-muted">
+          This action cannot be undone. All tasks in this project will be permanently deleted.
+        </p>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="deleteTarget.set(null)">Cancel</button>
+          <button
+            class="btn btn-danger"
+            (click)="onDelete()"
+            [disabled]="saving()"
+            id="confirm-delete-project-btn"
+          >
+            @if (saving()) {
+              <span class="spinner spinner-sm"></span>
+            } @else {
+              🗑️ Delete
+            }
+          </button>
+        </div>
       </div>
     </div>
-  </div>
   }
 </div>

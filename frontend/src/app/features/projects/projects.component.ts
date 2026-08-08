@@ -83,11 +83,11 @@ export class ProjectsComponent implements OnInit, OnDestroy {
     this.projectForm = this.fb.group(
       {
         name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
-        description: ['', [Validators.required, Validators.maxLength(500)]],
+        description: ['', [Validators.required, Validators.maxLength(1000)]],
         status: [ProjectStatus.Active, Validators.required],
         priority: [Priority.Medium, Validators.required],
-        startDate: [''],
-        endDate: [''],
+        startDate: ['', Validators.required],
+        endDate: ['', Validators.required],
       },
       { validators: this.dateValidator },
     );
@@ -164,9 +164,11 @@ export class ProjectsComponent implements OnInit, OnDestroy {
           const pageNumber = server.pageNumber ?? server.Page ?? server.page ?? 1;
           const pageSize = server.pageSize ?? server.PageSize ?? server.pageSize ?? this.pageSize();
           const totalCount = server.totalCount ?? server.TotalCount ?? 0;
-          const totalPages = server.totalPages ?? server.TotalPages ?? Math.ceil(totalCount / (pageSize || 1));
+          const totalPages =
+            server.totalPages ?? server.TotalPages ?? Math.ceil(totalCount / (pageSize || 1));
           const hasNextPage = server.hasNextPage ?? server.HasNextPage ?? pageNumber < totalPages;
-          const hasPreviousPage = server.hasPreviousPage ?? server.HasPreviousPage ?? pageNumber > 1;
+          const hasPreviousPage =
+            server.hasPreviousPage ?? server.HasPreviousPage ?? pageNumber > 1;
 
           const mapped: PagedResult<Project> = {
             items: items,
