@@ -1,5 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  ReactiveFormsModule,
+  AbstractControl,
+  ValidationErrors,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
@@ -33,18 +40,22 @@ export class RegisterComponent {
 
   // Role options for dropdown
   roleOptions = [
+    { value: 1, label: 'Admin', description: 'Can everything' },
     { value: 2, label: 'Project Manager', description: 'Can create and manage projects' },
-    { value: 3, label: 'Team Member', description: 'Can work on assigned tasks' }
+    { value: 3, label: 'Team Member', description: 'Can work on assigned tasks' },
   ];
 
-  form: FormGroup = this.fb.group({
-    firstName: ['', [Validators.required, Validators.minLength(2)]],
-    lastName: ['', [Validators.required, Validators.minLength(2)]],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]],
-    confirmPassword: ['', Validators.required],
-    role: [3, Validators.required] // Default to TeamMember (3)
-  }, { validators: passwordMatchValidator });
+  form: FormGroup = this.fb.group(
+    {
+      firstName: ['', [Validators.required, Validators.minLength(2)]],
+      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', Validators.required],
+      role: [3, Validators.required], // Default to TeamMember (3)
+    },
+    { validators: passwordMatchValidator },
+  );
 
   isInvalid(field: string): boolean {
     const control = this.form.get(field);
@@ -52,7 +63,7 @@ export class RegisterComponent {
   }
 
   togglePassword() {
-    this.showPassword.update(v => !v);
+    this.showPassword.update((v) => !v);
   }
 
   passwordStrength(): number {
@@ -84,7 +95,10 @@ export class RegisterComponent {
       next: (res) => {
         this.loading.set(false);
         if (res.success) {
-          this.toastService.success('Account created!', `Welcome to SmartTask, ${res.data.user.firstName}!`);
+          this.toastService.success(
+            'Account created!',
+            `Welcome to SmartTask, ${res.data.user.firstName}!`,
+          );
           this.router.navigate(['/dashboard']);
         } else {
           this.errorMessage.set(res.message || 'Registration failed. Please try again.');
@@ -98,7 +112,7 @@ export class RegisterComponent {
         } else {
           this.errorMessage.set(err?.error?.message || 'Registration failed. Please try again.');
         }
-      }
+      },
     });
   }
 }

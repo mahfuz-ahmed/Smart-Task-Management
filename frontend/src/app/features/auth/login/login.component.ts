@@ -10,7 +10,7 @@ import { ToastService } from '../../../core/services/toast.service';
   standalone: true,
   imports: [ReactiveFormsModule, CommonModule, RouterLink],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrl: './login.component.css',
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
@@ -24,7 +24,7 @@ export class LoginComponent {
 
   form: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required]
+    password: ['', Validators.required],
   });
 
   isInvalid(field: string): boolean {
@@ -33,7 +33,7 @@ export class LoginComponent {
   }
 
   togglePassword() {
-    this.showPassword.update(v => !v);
+    this.showPassword.update((v) => !v);
   }
 
   onSubmit() {
@@ -48,18 +48,28 @@ export class LoginComponent {
     this.authService.login(this.form.value).subscribe({
       next: (res) => {
         this.loading.set(false);
+
         if (res.success) {
           this.toastService.success('Welcome back!', `Hello, ${res.data.user.firstName}`);
+
           this.router.navigate(['/dashboard']);
         } else {
           this.errorMessage.set(res.message || 'Login failed. Please try again.');
         }
       },
+
       error: (err) => {
         this.loading.set(false);
-        const msg = err?.error?.message || err?.error?.errors?.[0] || 'Login failed. Please check your credentials.';
+
+        const errors = err?.error?.errors;
+
+        const msg =
+          Array.isArray(errors) && errors.length > 0
+            ? errors[0]
+            : err?.error?.message || 'Login failed. Please check your credentials.';
+
         this.errorMessage.set(msg);
-      }
+      },
     });
   }
 }
