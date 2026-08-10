@@ -10,6 +10,7 @@ using SmartTaskManagement.Domain.Interfaces;
 using SmartTaskManagement.Infrastructure.Data;
 using SmartTaskManagement.Infrastructure.Repositories;
 using SmartTaskManagement.Infrastructure.Services;
+using SmartTaskManagement.Application.Services;
 
 namespace SmartTaskManagement.Infrastructure;
 
@@ -92,6 +93,7 @@ public static class DependencyInjection
         // ── 4. Application Services ───────────────────────────────────────────
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IProjectService, ProjectService>();
+        services.AddScoped<IProjectMemberService, ProjectMemberService>();
         services.AddScoped<ITaskService, TaskService>();
         services.AddScoped<ITaskCommentService, TaskCommentService>();
         services.AddScoped<IDashboardService, DashboardService>();

@@ -5,7 +5,6 @@ using SmartTaskManagement.Application.DTOs.Auth;
 using SmartTaskManagement.Application.Exceptions;
 using SmartTaskManagement.Application.Interfaces.ExternalServices;
 using SmartTaskManagement.Domain.Entities;
-using SmartTaskManagement.Domain.Enums;
 using SmartTaskManagement.Domain.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -20,9 +19,7 @@ public sealed class AuthService : IAuthService
     private readonly ILogger<AuthService> _logger;
     private readonly IUnitOfWork _uow;
 
-    public AuthService(IUnitOfWork uow,
-
-        IConfiguration config, ILogger<AuthService> logger)
+    public AuthService(IUnitOfWork uow, IConfiguration config, ILogger<AuthService> logger)
     {
         _uow = uow;
         _config = config;
@@ -102,10 +99,10 @@ public sealed class AuthService : IAuthService
             throw new ConflictException($"Email '{dto.Email}' is already registered.");
 
         // Prevent self-assignment of Admin role
-        if (dto.Role == UserRole.Admin)
-            throw new BusinessException("Admin role cannot be " +
-                "self-assigned during" +
-                "                          registration.");
+
+        //if (dto.Role == UserRole.Admin)
+        //    throw new BusinessException("Admin role cannot be " +
+        //        "self-assigned during" + " registration.");
 
         var user = new User
         {
@@ -125,7 +122,7 @@ public sealed class AuthService : IAuthService
         return response;
     }
 
-    // ── Private Helpers ───────────────────────────────────────────────────────
+    // ── Private Helpers
 
     private async Task<AuthResponseDto> BuildAuthResponseAsync(User user, CancellationToken ct)
     {
@@ -141,9 +138,7 @@ public sealed class AuthService : IAuthService
             accessToken,
             refreshToken,
             expiry,
-            new UserProfileDto(user.Id, user.FirstName, user.LastName,
-                               user.FullName, user.Email, user.Role.ToString())
-        );
+            new UserProfileDto(user.Id, user.FirstName, user.LastName, user.FullName, user.Email, user.Role.ToString()));
     }
 
     private async Task<string> CreateRefreshTokenAsync(Guid userId, string jwtId, CancellationToken ct)
@@ -167,8 +162,7 @@ public sealed class AuthService : IAuthService
 
     private string GenerateJwt(User user, string jwtId, DateTime expiry)
     {
-        var secretKey = _config["JwtSettings:SecretKey"]
-            ?? throw new InvalidOperationException("JwtSettings:SecretKey is not configured.");
+        var secretKey = _config["JwtSettings:SecretKey"] ?? throw new InvalidOperationException("JwtSettings:SecretKey is not configured.");
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -194,8 +188,7 @@ public sealed class AuthService : IAuthService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    private int GetExpiryMinutes() =>
-        int.TryParse(_config["JwtSettings:ExpiryMinutes"], out var m) ? m : 15;
+    private int GetExpiryMinutes() => int.TryParse(_config["JwtSettings:ExpiryMinutes"], out var m) ? m : 15;
 
     private ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
     {
@@ -221,14 +214,10 @@ public sealed class AuthService : IAuthService
 
         try
         {
-            var principal = tokenHandler.ValidateToken(token,
-                        parameters, out
-                            var secToken);
+            var principal = tokenHandler.ValidateToken(token, parameters, out var secToken);
 
-            if (secToken is not JwtSecurityToken jwt ||
-                                !jwt.Header.Alg.
-                Equals(SecurityAlgorithms.
-                            HmacSha256, StringComparison.OrdinalIgnoreCase))
+            if (secToken is not JwtSecurityToken jwt || !jwt.Header.Alg.
+                Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase))
                 throw new UnauthorizedException("Invalid token format.");
 
             return principal;

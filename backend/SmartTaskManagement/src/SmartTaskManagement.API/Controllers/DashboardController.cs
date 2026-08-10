@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTaskManagement.Application.Common;
+using SmartTaskManagement.Application.Common.Constants;
 using SmartTaskManagement.Application.DTOs.Dashboard;
 using SmartTaskManagement.Application.Interfaces.ExternalServices;
 
@@ -11,19 +11,20 @@ namespace SmartTaskManagement.API.Controllers;
 [Route("api/dashboard")]
 [Authorize]
 [Produces("application/json")]
-public sealed class DashboardController : BaseApiController
+public sealed class DashboardController : BaseController
 {
-    private readonly IDashboardService _dashboard;
+    private readonly IDashboardService _dashboardService;
 
-    public DashboardController(IDashboardService dashboard) => _dashboard = dashboard;
-
-    [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<DashboardStatsDto>), 200)]
-    public async Task<IActionResult> GetStats(CancellationToken ct)
+    public DashboardController(IDashboardService dashboardService)
     {
-        var result = await _dashboard.GetStatsAsync(GetUserId(), ct);
-        return Ok(ApiResponse<DashboardStatsDto>.Ok(result));
+        _dashboardService = dashboardService;
     }
 
-    private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    [HttpGet]
+    public async Task<IActionResult> GetStats(CancellationToken cancellationToken)
+    {
+        var result = await _dashboardService.GetStatsAsync(GetCurrentUserId(), cancellationToken);
+
+        return Ok(ApiResponse<DashboardStatsDto>.Ok(result, SuccessMessages.Retrieved));
+    }
 }

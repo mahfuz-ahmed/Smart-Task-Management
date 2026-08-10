@@ -1,124 +1,116 @@
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using SmartTaskManagement.Application.Common;
 using SmartTaskManagement.Application.DTOs.Projects;
 using SmartTaskManagement.Application.Interfaces.Services;
+using SmartTaskManagement.Application.Services;
+using SmartTaskManagement.Application.Common.Constants;
 
-namespace SmartTaskManagement.API.Controllers
+namespace SmartTaskManagement.API.Controllers;
+
+[ApiController]
+[Route("api/projects")]
+[Authorize]
+[Produces("application/json")]
+public sealed class ProjectsController : BaseController
 {
-    [ApiController]
-    [Route("api/projects")]
-    [Authorize]
-    [Produces("application/json")]
-    public sealed class ProjectsController : ControllerBase
+    private readonly IProjectService _projectService;
+    private readonly IProjectMemberService _projectMemberService;
+    private readonly IValidator<CreateProjectDto> _createProjectValidator;
+    private readonly IValidator<UpdateProjectDto> _updateProjectValidator;
+    private readonly IValidator<AddProjectMemberDto> _addProjectMemberValidator;
+
+    public ProjectsController(IProjectService projectService, IProjectMemberService projectMemberService, IValidator<CreateProjectDto> createProjectValidator, IValidator<UpdateProjectDto> updateProjectValidator, IValidator<AddProjectMemberDto> addProjectMemberValidator)
     {
-        private readonly IProjectService _projects;
-        private readonly IValidator<CreateProjectDto> _createVal;
-        private readonly IValidator<UpdateProjectDto> _updateVal;
+        _projectService = projectService;
+        _projectMemberService = projectMemberService;
+        _createProjectValidator = createProjectValidator;
+        _updateProjectValidator = updateProjectValidator;
+        _addProjectMemberValidator = addProjectMemberValidator;
+    }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll([FromQuery] ProjectQueryDto query, CancellationToken cancellationToken)
+    {
+        var result = await _projectService.GetProjectsAsync(query, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
 
-        public ProjectsController(IProjectService projects, IValidator<CreateProjectDto> createVal, IValidator<UpdateProjectDto> updateVal)
-        {
-            _projects = projects;
-            _createVal = createVal;
-            _updateVal = updateVal;
-        }
+        return Ok(ApiResponse<PagedResult<ProjectDto>>.Ok(result, SuccessMessages.Retrieved));
+    }
 
-        // Get all projects, only accessible by Admin
-        [HttpGet]
-        [Authorize]
-        public async Task<IActionResult> GetAll([FromQuery] ProjectQueryDto query, CancellationToken ct)
-        {
-            var result = await _projects.GetProjectsAsync(query, GetUserId(), GetRoles(), ct);
-            return Ok(ApiResponse<PagedResult<ProjectDto>>.Ok(result));
-        }
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _projectService.GetByIdAsync(id, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
-        {
-            var result = await _projects.GetByIdAsync(id, GetUserId(), GetRoles(), ct);
-            return Ok(ApiResponse<ProjectDto>.Ok(result));
-        }
+        return Ok(ApiResponse<ProjectDto>.Ok(result, SuccessMessages.Retrieved));
+    }
 
-        // Create a new project
-        [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Create([FromBody] CreateProjectDto dto, CancellationToken ct)
-        {
-            var v = await _createVal.ValidateAsync(dto, ct);
-            if (!v.IsValid) return BadRequest(ApiResponse<object>.Fail(v.Errors.Select(e => e.ErrorMessage)));
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Create([FromBody] CreateProjectDto dto, CancellationToken cancellationToken)
+    {
+        var validationResponse = await ValidateAsync(dto, _createProjectValidator, cancellationToken);
 
-            var result = await _projects.CreateAsync(dto, GetUserId(), GetRoles(), ct);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, ApiResponse<ProjectDto>.Ok(result, "Project created."));
-        }
+        if (validationResponse is not null)
+            return validationResponse;
 
-        // Update a project
-        [HttpPut("{id:guid}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProjectDto dto, CancellationToken ct)
-        {
-            var v = await _updateVal.ValidateAsync(dto, ct);
-            if (!v.IsValid) return BadRequest(ApiResponse<object>.Fail(v.Errors.Select(e => e.ErrorMessage)));
+        var result = await _projectService.CreateAsync(dto, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
 
-            var result = await _projects.UpdateAsync(id, dto, GetUserId(), GetRoles(), ct);
-            return Ok(ApiResponse<ProjectDto>.Ok(result, "Project updated."));
-        }
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, ApiResponse<ProjectDto>.Ok(result, SuccessMessages.Created));
+    }
 
-        // Delete a project
-        [HttpDelete("{id:guid}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
-        {
-            await _projects.DeleteAsync(id, GetUserId(), GetRoles(), ct);
-            return Ok(ApiResponse.Ok("Project deleted."));
-        }
+    [HttpPut("{id:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProjectDto dto, CancellationToken cancellationToken)
+    {
+        var validationResponse = await ValidateAsync(dto, _updateProjectValidator, cancellationToken);
 
-        // ── Members ───────────────────────────────────────────────────────────────
+        if (validationResponse is not null)
+            return validationResponse;
 
-        [HttpGet("{id:guid}/members")]
-        public async Task<IActionResult> GetMembers(Guid id, CancellationToken ct)
-        {
-            var result = await _projects.GetMembersAsync(id, ct);
-            return Ok(ApiResponse<IEnumerable<ProjectMemberDto>>.Ok(result));
-        }
+        var result = await _projectService.UpdateAsync(id, dto, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
 
-        [HttpPost("{id:guid}/members")]
-        [Authorize(Roles = "Admin,ProjectManager")]
-        public async Task<IActionResult> AddMember(Guid id, [FromBody] AddProjectMemberDto dto, CancellationToken ct)
-        {
-            if (dto.UserId == Guid.Empty)
-            {
-                return BadRequest(ApiResponse<object>.Fail("UserId is required"));
-            }
+        return Ok(ApiResponse<ProjectDto>.Ok(result, SuccessMessages.Updated));
+    }
 
-            var result = await _projects.AddMemberAsync(id, dto, GetUserId(), GetRoles(), ct);
-            return Ok(ApiResponse<ProjectMemberDto>.Ok(result, "Member added."));
-        }
+    [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await _projectService.DeleteAsync(id, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
 
-        // Remove a member from a project
-        [HttpDelete("{id:guid}/members/{userId:guid}")]
-        [Authorize(Roles = "Admin,ProjectManager")]
-        public async Task<IActionResult> RemoveMember(Guid id, Guid userId, CancellationToken ct)
-        {
-            await _projects.RemoveMemberAsync(id, userId, GetUserId(), GetRoles(), ct);
-            return Ok(ApiResponse.Ok("Member removed."));
-        }
+        return Ok(ApiResponse.Ok("Project deleted successfully."));
+    }
 
-        // get the current user's ID from the claims
-        private Guid GetUserId()
-        {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? throw new UnauthorizedAccessException("User not authenticated");
-            return Guid.Parse(userIdClaim);
-        }
+    [HttpGet("{id:guid}/members")]
+    public async Task<IActionResult> GetMembers(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _projectMemberService.GetMembersAsync(id, cancellationToken);
 
-        // get the current user's roles from the claims
-        private IEnumerable<string> GetRoles()
-        {
-            return User.FindAll(ClaimTypes.Role).Select(x => x.Value);
-        }
+        return Ok(ApiResponse<IEnumerable<ProjectMemberDto>>.Ok(result, SuccessMessages.Retrieved));
+    }
+
+    [HttpPost("{id:guid}/members")]
+    [Authorize(Roles = "Admin,ProjectManager")]
+    public async Task<IActionResult> AddMember(Guid id, [FromBody] AddProjectMemberDto dto, CancellationToken cancellationToken)
+    {
+        var validationResponse = await ValidateAsync(dto, _addProjectMemberValidator, cancellationToken);
+
+        if (validationResponse is not null)
+            return validationResponse;
+
+        var result = await _projectMemberService.AddMemberAsync(id, dto, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
+
+        return Ok(ApiResponse<ProjectMemberDto>.Ok(result, SuccessMessages.Created));
+    }
+
+    [HttpDelete("{id:guid}/members/{userId:guid}")]
+    [Authorize(Roles = "Admin,ProjectManager")]
+    public async Task<IActionResult> RemoveMember(Guid id, Guid userId, CancellationToken cancellationToken)
+    {
+        await _projectMemberService.RemoveMemberAsync(id, userId, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
+
+        return Ok(ApiResponse.Ok(SuccessMessages.Deleted));
     }
 }

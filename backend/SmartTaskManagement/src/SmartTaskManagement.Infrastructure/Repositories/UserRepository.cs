@@ -7,7 +7,9 @@ namespace SmartTaskManagement.Infrastructure.Repositories;
 
 public sealed class UserRepository : BaseRepository<User, Guid>, IUserRepository
 {
-    public UserRepository(AppDbContext context) : base(context) { }
+    public UserRepository(AppDbContext context) : base(context)
+    {
+    }
 
     public async Task<User?> GetByEmailAsync(string email, CancellationToken ct = default)
     {
@@ -31,11 +33,7 @@ public sealed class UserRepository : BaseRepository<User, Guid>, IUserRepository
             .AnyAsync(u => !u.IsDeleted && u.Email == normalizedEmail, ct);
     }
 
-    public async Task<IReadOnlyList<User>> SearchUsersAsync(
-        string keyword,
-        Guid? excludeProjectId = null,
-        int limit = 10,
-        CancellationToken ct = default)
+    public async Task<IReadOnlyList<User>> SearchUsersAsync(string keyword, Guid? excludeProjectId = null, int limit = 10, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(keyword) || keyword.Trim().Length < 2)
             return Array.Empty<User>();

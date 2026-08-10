@@ -1,54 +1,38 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SmartTaskManagement.Application.Common;
+using SmartTaskManagement.Application.Common.Constants;
 using SmartTaskManagement.Application.DTOs.Users;
 using SmartTaskManagement.Application.Interfaces.Services;
-using System.Security.Claims;
 
-namespace SmartTaskManagement.API.Controllers
+namespace SmartTaskManagement.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+[Produces("application/json")]
+public sealed class UsersController : BaseController
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    [Authorize]
-    public class UsersController : BaseApiController
+    private readonly IUserService _userService;
+
+    public UsersController(IUserService userService)
     {
-        private readonly IUserService _userService;
+        _userService = userService;
+    }
 
-        public UsersController(IUserService userService)
-        {
-            _userService = userService;
-        }
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string term, [FromQuery] Guid? excludeProjectId = null, [FromQuery] int limit = 10, CancellationToken cancellationToken = default)
+    {
+        var users = await _userService.SearchAsync(term, excludeProjectId, limit, cancellationToken);
 
-        [HttpGet("search")]
-        public async Task<ActionResult<ApiResponse<IReadOnlyList<UserDto>>>> Search(
-            [FromQuery] string term,
-            [FromQuery] Guid? excludeProjectId = null,
-            [FromQuery] int limit = 10,
-            CancellationToken ct = default)
-        {
-            var users = await _userService.SearchAsync(term, excludeProjectId, limit, ct);
-            return Ok(ApiResponse<IReadOnlyList<UserDto>>.Ok(users));
-        }
+        return Ok(ApiResponse<IReadOnlyList<UserDto>>.Ok(users));
+    }
 
-        [HttpDelete("{userId:guid}")]
-        public async Task<ActionResult<ApiResponse>> Delete(
-            Guid userId,
-            CancellationToken ct = default)
-        {
-            await _userService.DeleteAsync(userId, GetUserId(), GetRoles(), ct);
-            return Ok(ApiResponse.Ok("User deleted successfully."));
-        }
+    [HttpDelete("{userId:guid}")]
+    public async Task<IActionResult> Delete(Guid userId, CancellationToken cancellationToken = default)
+    {
+        await _userService.DeleteAsync(userId, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
 
-        private Guid GetUserId()
-        {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                ?? throw new UnauthorizedAccessException("User not authenticated");
-            return Guid.Parse(userIdClaim);
-        }
-
-        private IEnumerable<string> GetRoles()
-        {
-            return User.FindAll(ClaimTypes.Role).Select(x => x.Value);
-        }
+        return Ok(ApiResponse.Ok(SuccessMessages.Deleted));
     }
 }

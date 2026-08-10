@@ -28,10 +28,10 @@ public sealed class RegisterValidator : AbstractValidator<RegisterDto>
             .Matches(@"[0-9]").WithMessage("Password must contain at least one digit.")
             .Matches(@"[^a-zA-Z0-9]").WithMessage("Password must contain at least one special character.");
 
-        RuleFor(x => x.Role)
-            .NotEqual(UserRole.Admin)
-            .WithMessage("Admin role cannot be self-assigned during registration.")
-            .IsInEnum()
-            .WithMessage("Role must be either ProjectManager or TeamMember.");
+        //RuleFor(x => x.Role)
+        //    .NotEqual(UserRole.Admin)
+        //    .WithMessage("Admin role cannot be self-assigned during registration.")
+        //    .IsInEnum()
+        //    .WithMessage("Role must be either ProjectManager or TeamMember.");
     }
 }

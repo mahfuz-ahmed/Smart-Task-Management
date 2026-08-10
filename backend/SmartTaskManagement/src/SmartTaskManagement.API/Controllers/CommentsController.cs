@@ -1,73 +1,67 @@
-using System.Security.Claims;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
 using SmartTaskManagement.Application.Common;
+using SmartTaskManagement.Application.Common.Constants;
 using SmartTaskManagement.Application.DTOs.Comments;
 using SmartTaskManagement.Application.Interfaces.Services;
 
-namespace SmartTaskManagement.API.Controllers
+namespace SmartTaskManagement.API.Controllers;
+
+[ApiController]
+[Route("api/projects/{projectId:guid}/tasks/{taskId:guid}/comments")]
+[Authorize]
+[Produces("application/json")]
+public sealed class CommentsController : BaseController
 {
-    [ApiController]
-    [Route("api/projects/{projectId:guid}/tasks/{taskId:guid}/comments")]
-    [Authorize]
-    [Produces("application/json")]
-    public sealed class CommentsController : ControllerBase
+    private readonly ITaskCommentService _commentService;
+    private readonly IValidator<CreateCommentDto> _createCommentValidator;
+    private readonly IValidator<UpdateCommentDto> _updateCommentValidator;
+
+    public CommentsController(ITaskCommentService commentService, IValidator<CreateCommentDto> createCommentValidator, IValidator<UpdateCommentDto> updateCommentValidator)
     {
-        private readonly ITaskCommentService _comments;
-        private readonly IValidator<CreateCommentDto> _createVal;
-        
+        _commentService = commentService;
+        _createCommentValidator = createCommentValidator;
+        _updateCommentValidator = updateCommentValidator;
+    }
 
-        public CommentsController(ITaskCommentService comments, IValidator<CreateCommentDto> createVal)
-        {
-            _comments = comments;
-            _createVal = createVal;
-        }
+    [HttpGet]
+    public async Task<IActionResult> GetAll(Guid projectId, Guid taskId, CancellationToken cancellationToken)
+    {
+        var result = await _commentService.GetByTaskAsync(taskId, cancellationToken);
 
-        [HttpGet]
-        public async Task<IActionResult> GetAll(Guid projectId, Guid taskId, CancellationToken ct)
-        {
-            var result = await _comments.GetByTaskAsync(taskId, ct);
-            return Ok(ApiResponse<IEnumerable<TaskCommentDto>>.Ok(result));
-        }
+        return Ok(ApiResponse<IEnumerable<TaskCommentDto>>.Ok(result, SuccessMessages.Retrieved));
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> Create(Guid projectId, Guid taskId, [FromBody] CreateCommentDto dto, CancellationToken ct)
-        {
-            var (isValid, errorResponse) = await ValidateRequestAsync(dto, _createVal, ct);
-            if (!isValid) return errorResponse!;
+    [HttpPost]
+    public async Task<IActionResult> Create(Guid projectId, Guid taskId, [FromBody] CreateCommentDto dto, CancellationToken cancellationToken)
+    {
+        var validationResponse = await ValidateAsync(dto, _createCommentValidator, cancellationToken);
 
-            var result = await _comments.CreateAsync(taskId, dto, GetUserId(), ct);
-            return Ok(ApiResponse<TaskCommentDto>.Ok(result, "Comment posted."));
-        }
+        if (validationResponse is not null) return validationResponse;
 
-        [HttpPut("{commentId:guid}")]
-        public async Task<IActionResult> Update(Guid taskId, Guid commentId, [FromBody] UpdateCommentDto dto, CancellationToken ct)
-        {
-            var result = await _comments.UpdateAsync(commentId, dto, GetUserId(), ct);
-            return Ok(ApiResponse<TaskCommentDto>.Ok(result, "Comment updated."));
-        }
+        var result = await _commentService.CreateAsync(taskId, dto, GetCurrentUserId(), cancellationToken);
 
-        [HttpDelete("{commentId:guid}")]
-        public async Task<IActionResult> Delete(Guid taskId, Guid commentId, CancellationToken ct)
-        {
-            await _comments.DeleteAsync(commentId, GetUserId(), GetRoles(), ct);
-            return Ok(ApiResponse.Ok("Comment deleted."));
-        }
+        return Ok(ApiResponse<TaskCommentDto>.Ok(result, SuccessMessages.Created));
+    }
 
-        private Guid GetUserId() => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+    [HttpPut("{commentId:guid}")]
+    public async Task<IActionResult> Update(Guid projectId, Guid taskId, Guid commentId, [FromBody] UpdateCommentDto dto, CancellationToken cancellationToken)
+    {
+        var validationResponse = await ValidateAsync(dto, _updateCommentValidator, cancellationToken);
 
-        private IEnumerable<string> GetRoles() => User.FindAll(ClaimTypes.Role).Select(c => c.Value);
+        if (validationResponse is not null) return validationResponse;
 
-        private async Task<(bool IsValid, IActionResult? Response)> ValidateRequestAsync<T>(
-            T dto, IValidator<T> validator, CancellationToken ct)
-        {
-            var result = await validator.ValidateAsync(dto, ct);
-            if (!result.IsValid)
-                return (false, BadRequest(ApiResponse<object>.Fail(
-                    result.Errors.Select(e => e.ErrorMessage))));
-            return (true, null);
-        }
+        var result = await _commentService.UpdateAsync(commentId, dto, GetCurrentUserId(), cancellationToken);
+
+        return Ok(ApiResponse<TaskCommentDto>.Ok(result, SuccessMessages.Updated));
+    }
+
+    [HttpDelete("{commentId:guid}")]
+    public async Task<IActionResult> Delete(Guid projectId, Guid taskId, Guid commentId, CancellationToken cancellationToken)
+    {
+        await _commentService.DeleteAsync(commentId, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
+
+        return Ok(ApiResponse.Ok("Comment deleted."));
     }
 }

@@ -13,5 +13,11 @@ public sealed class LoginValidator : AbstractValidator<LoginDto>
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("Password is required.");
+
+        RuleFor(x => x.Password)
+            .NotEmpty()
+            .WithMessage("Password is required.")
+            .MinimumLength(60)
+            .WithMessage("Password must be at least 60 characters.");
     }
 }
