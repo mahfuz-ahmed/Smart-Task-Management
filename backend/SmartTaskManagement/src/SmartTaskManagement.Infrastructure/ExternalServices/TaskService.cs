@@ -169,14 +169,18 @@ public sealed class TaskService : ITaskService
         if (task == null || task.ProjectId != projectId)
             throw new NotFoundException(nameof(TaskItem), taskId);
 
-        var projectMember = await _uow.ProjectMembers.GetMembershipAsync(projectId, requestingUserId, ct);
-
-        if (projectMember == null)
-            throw new NotFoundException(nameof(ProjectMember), projectId);
-
         var roleList = roles.ToList();
         var isAdmin = roleList.Contains(UserRole.Admin.ToString());
-        var isProjectManager = projectMember.ProjectRole == ProjectRole.Manager;
+
+        var projectMember = await _uow.ProjectMembers.GetMembershipAsync(projectId, requestingUserId, ct);
+
+        if (!isAdmin)
+        {
+            if (projectMember == null)
+                throw new NotFoundException(nameof(ProjectMember), projectId);
+        }
+
+        var isProjectManager = projectMember?.ProjectRole == ProjectRole.Manager;
         var isAssignedUser = task.AssignedToUserId == requestingUserId;
 
         //if (!roleList.Contains(UserRole.Admin.ToString()) && task.AssignedToUserId != requestingUserId)

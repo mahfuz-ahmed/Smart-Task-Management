@@ -31,10 +31,10 @@ public static class DatabaseSeeder
             var admin = new User
             {
                 Id = Guid.NewGuid(),
-                FirstName = "Datavanced",
-                LastName = "BD LTD",
+                FirstName = "Smart Task",
+                LastName = "Management",
                 Email = "admin@smarttask.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123456"),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin1234!"),
                 Role = UserRole.Admin,
                 IsActive = true,
                 CreatedAtUtc = DateTime.UtcNow
@@ -47,7 +47,7 @@ public static class DatabaseSeeder
                 FirstName = "Mahfuz",
                 LastName = "Ahmed",
                 Email = "user@smarttask.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("User@123456"),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("User1234!"),
                 Role = UserRole.TeamMember,
                 IsActive = true,
                 CreatedAtUtc = DateTime.UtcNow
@@ -57,8 +57,8 @@ public static class DatabaseSeeder
             await context.SaveChangesAsync();
 
             logger.LogInformation("Database users seeded successfully.");
-            logger.LogInformation("Admin : admin@smarttask.com / Admin@123456");
-            logger.LogInformation("Member: user@smarttask.com / User@123456");
+            logger.LogInformation("Admin : admin@smarttask.com / Admin1234!");
+            logger.LogInformation("Member: user@smarttask.com / User1234!");
         }
         catch (Exception ex)
         {
