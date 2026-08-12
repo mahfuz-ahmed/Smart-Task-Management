@@ -12,7 +12,7 @@ namespace SmartTaskManagement.Application.Validators.ProjectMembers
                 .WithMessage("User is required.");
 
             RuleFor(x => x.ProjectRole)
-                .IsInEnum()
+                .NotEmpty()
                 .WithMessage("Invalid project role.");
         }
     }
