@@ -18,7 +18,5 @@ public sealed class UpdateTaskValidator : AbstractValidator<UpdateTaskDto>
         RuleFor(x => x.Priority)
             .InclusiveBetween(1, 4).WithMessage("Priority must be 1=Low, 2=Medium, 3=High, 4=Critical.");
 
-        // Allow any date for updates - tasks can have past due dates when updating
-        // No validation on DueDate for update operations
     }
 }

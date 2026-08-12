@@ -18,15 +18,15 @@ public sealed class TasksController : BaseController
     private readonly IValidator<CreateTaskDto> _createTaskValidator;
     private readonly IValidator<UpdateTaskDto> _updateTaskValidator;
     private readonly IValidator<UpdateTaskStatusDto> _updateTaskStatusValidator;
-    private readonly IValidator<AssignTaskDto> _assignTaskValidator;
+    //private readonly IValidator<AssignTaskDto> _assignTaskValidator;
 
-    public TasksController(ITaskService taskService, IValidator<CreateTaskDto> createTaskValidator, IValidator<UpdateTaskDto> updateTaskValidator, IValidator<UpdateTaskStatusDto> updateTaskStatusValidator, IValidator<AssignTaskDto> assignTaskValidator)
+    public TasksController(ITaskService taskService, IValidator<CreateTaskDto> createTaskValidator, IValidator<UpdateTaskDto> updateTaskValidator, IValidator<UpdateTaskStatusDto> updateTaskStatusValidator)
     {
         _taskService = taskService;
         _createTaskValidator = createTaskValidator;
         _updateTaskValidator = updateTaskValidator;
         _updateTaskStatusValidator = updateTaskStatusValidator;
-        _assignTaskValidator = assignTaskValidator;
+        //_assignTaskValidator = assignTaskValidator;
     }
 
     [HttpGet]
@@ -93,9 +93,9 @@ public sealed class TasksController : BaseController
     [HttpPatch("{taskId:guid}/assign")]
     public async Task<IActionResult> Assign(Guid projectId, Guid taskId, [FromBody] AssignTaskDto dto, CancellationToken cancellationToken)
     {
-        var validationResponse = await ValidateAsync(dto, _assignTaskValidator, cancellationToken);
+        //var validationResponse = await ValidateAsync(dto, _assignTaskValidator, cancellationToken);
 
-        if (validationResponse is not null) return validationResponse;
+        //if (validationResponse is not null) return validationResponse;
 
         var result = await _taskService.AssignAsync(projectId, taskId, dto, GetCurrentUserId(), GetCurrentUserRoles(), cancellationToken);
 
