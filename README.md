@@ -1,8 +1,22 @@
 # Smart Task Management System
-[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=flat&logo=dotnet)](https://dotnet.microsoft.com/)
-[![Angular](https://img.shields.io/badge/Angular-22.0-DD0031?style=flat&logo=angular)](https://angular.io/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org/)
-[![SQL Server](https://img.shields.io/badge/SQL%20Server-2019+-CC2927?style=flat&logo=microsoft-sql-server)](https://www.microsoft.com/sql-server)
+
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=flat\&logo=dotnet)](https://dotnet.microsoft.com/)
+[![Angular](https://img.shields.io/badge/Angular-22.0-DD0031?style=flat\&logo=angular)](https://angular.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat\&logo=typescript)](https://www.typescriptlang.org/)
+[![SQL Server](https://img.shields.io/badge/SQL%20Server-2019+-CC2927?style=flat\&logo=microsoft-sql-server)](https://www.microsoft.com/sql-server)
+
+---
+
+## 🚀 Live Demo
+
+🔗 **[Open Live Application →](http://zeosticsofttriel-001-site1.itempurl.com/auth/login)**
+
+> **Demo Login Credentials**
+
+| Role            | Email                 | Password       |
+| --------------- | --------------------- | -------------- |
+| **Admin**       | `admin@smarttask.com` | `Admin@123456` |
+| **Team Member** | `user@smarttask.com`  | `User@123456`  |
 
 ---
 
@@ -16,9 +30,10 @@ On the first application startup, the database is automatically migrated and see
 | **Team Member** | `user@smarttask.com`  | `User@123456`  |
 
 > **⚠️ Important**
-> - ✅ Auto-created on first run (only if database is empty)
-> - ❌ Admin Cannot be created manually via registration
-> - 📝 New users register as **Project Manager** or **Team Member**
+>
+> * ✅ Auto-created on first run (only if database is empty)
+> * ❌ Admin cannot be created manually via registration
+> * 📝 New users can register as **Project Manager** or **Team Member**
 
 ---
 
